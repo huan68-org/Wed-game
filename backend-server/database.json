@@ -1,0 +1,276 @@
+{
+  "h2": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "b3987b3c-b894-4ff7-9c7a-fd7c07726ddb"
+    },
+    "profile": {
+      "createdAt": "2025-07-17T12:32:48.871Z"
+    },
+    "history": [
+      {
+        "id": "4adca391-29c1-4190-9192-30e70e302bca",
+        "date": "2025-07-17T13:07:29.484Z",
+        "gameName": "Xếp hình",
+        "imageSrc": "/uploads/puzzleImage-1752757615242-286853432.png",
+        "difficulty": "3x3",
+        "moves": 11,
+        "timeInSeconds": 31
+      },
+      {
+        "id": "60dede10-8776-43a2-8269-a3952587e3d2",
+        "date": "2025-07-17T13:04:44.464Z",
+        "gameName": "Xếp hình",
+        "imageSrc": "/uploads/puzzleImage-1752757449718-830064653.png",
+        "difficulty": "3x3",
+        "moves": 13,
+        "timeInSeconds": 31
+      },
+      {
+        "id": "6f023b1f-fc6d-4041-8034-a9ad9d9ea6db",
+        "date": "2025-07-17T12:52:37.078Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      }
+    ],
+    "friends": [
+      {
+        "username": "h",
+        "status": "friends",
+        "since": "2025-07-17T12:37:16.026Z"
+      }
+    ]
+  },
+  "h": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "68e019c5-89e8-46a3-b1a8-6b56d945ec0d"
+    },
+    "profile": {
+      "createdAt": "2025-07-17T12:36:46.507Z"
+    },
+    "history": [
+      {
+        "id": "3c72d9d3-a252-4543-a1bc-bebf94171548",
+        "date": "2025-07-17T12:52:37.075Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h2",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      }
+    ],
+    "friends": [
+      {
+        "username": "h2",
+        "status": "friends",
+        "since": "2025-07-17T12:37:16.026Z"
+      }
+    ]
+  },
+  "conversations": {
+    "h_h2": {
+      "participants": [
+        "h2",
+        "h"
+      ],
+      "messages": [
+        {
+          "id": "c68e20e6-34ed-45bf-b0d2-e0405e1394db",
+          "sender": "h2",
+          "recipient": "h",
+          "message": "aloo",
+          "timestamp": "2025-07-17T12:37:24.273Z"
+        },
+        {
+          "id": "d76137b4-561a-4a04-aca4-d9d61bb3a0e9",
+          "sender": "h",
+          "recipient": "h2",
+          "message": "lô cái j mà lô",
+          "timestamp": "2025-07-17T12:37:41.895Z"
+        },
+        {
+          "id": "089c7ede-1ff3-44e5-b4e5-57a0f743cefb",
+          "sender": "h2",
+          "recipient": "h",
+          "message": "ơ hay",
+          "timestamp": "2025-07-17T12:37:57.095Z"
+        }
+      ]
+    }
+  },
+  "huan1122": {
+    "credentials": {
+      "password": "4",
+      "apiKey": "ca830a22-926f-4540-be54-9b34e0d79bcb"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T10:12:48.521Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "Huân0710": {
+    "credentials": {
+      "password": "1234",
+      "apiKey": "2b502584-668d-4a93-9fbc-7ca3bbf4e061"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T10:58:57.624Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "huânN": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "3977068d-f24d-459b-bb94-1386a87839b3"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T11:07:55.393Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "hhhhhh": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "dc64a910-33e7-40e7-8951-a913ce601e62"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T11:12:24.014Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "uchiha": {
+    "credentials": {
+      "password": "1234",
+      "apiKey": "097aa4d6-6af5-4c74-8977-a1033bb96915"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T11:27:25.109Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "hg": {
+    "credentials": {
+      "password": "234",
+      "apiKey": "702f4785-1a47-4d06-b355-b53d883c795b"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T11:50:48.139Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "quynh": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "ab89a5f5-cca1-401f-96e3-e8d80ac469fb"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T12:18:59.053Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "quynh1": {
+    "credentials": {
+      "password": "2",
+      "apiKey": "18737176-35af-4f81-a26a-495fc66c0b48"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T12:19:12.111Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "huanNguyen": {
+    "credentials": {
+      "password": "1234",
+      "apiKey": "8e9947cf-7ba6-423e-bb6a-5bfc2bbe3e58"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T12:23:01.557Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "HuHi": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "dfa90381-8769-4478-aac9-3b749396a96b"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T12:36:12.026Z"
+    },
+    "history": [
+      {
+        "id": "b71faa03-fc96-4ec9-826c-853ebcd84b1b",
+        "date": "2025-07-18T12:57:08.006Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs anhyeuemlam",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      }
+    ],
+    "friends": [
+      {
+        "username": "anhyeuemlam",
+        "status": "friends",
+        "since": "2025-07-18T13:52:44.759Z"
+      },
+      {
+        "username": "sasuke",
+        "status": "friends",
+        "since": "2025-07-18T14:52:45.812Z"
+      }
+    ]
+  },
+  "anhyeuemlam": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "f46ee798-71e7-4340-9d63-b36ddd08207e"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T12:56:32.566Z"
+    },
+    "history": [
+      {
+        "id": "eb558131-7937-42ed-b8c9-a4747101fc16",
+        "date": "2025-07-18T12:57:08.003Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs HuHi",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      }
+    ],
+    "friends": [
+      {
+        "username": "HuHi",
+        "status": "friends",
+        "since": "2025-07-18T13:52:44.759Z"
+      }
+    ]
+  },
+  "sasuke": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "d4257549-0178-40b6-9043-9f206eba9d10"
+    },
+    "profile": {
+      "createdAt": "2025-07-18T13:53:33.865Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "username": "HuHi",
+        "status": "friends",
+        "since": "2025-07-18T14:52:45.812Z"
+      }
+    ]
+  }
+}
