@@ -1,9 +1,36 @@
-import { EventEmitter } from 'events';
+class SimpleEventEmitter {
+    constructor() {
+        this.events = {};
+    }
+
+    on(eventName, listener) {
+        if (!this.events[eventName]) {
+            this.events[eventName] = [];
+        }
+        this.events[eventName].push(listener);
+    }
+
+    off(eventName, listenerToRemove) {
+        if (!this.events[eventName]) return;
+
+        this.events[eventName] = this.events[eventName].filter(
+            listener => listener !== listenerToRemove
+        );
+    }
+
+    emit(eventName, ...args) {
+        if (!this.events[eventName]) return;
+
+        this.events[eventName].forEach(listener => {
+            listener(...args);
+        });
+    }
+}
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const WS_URL = API_URL.replace(/^(http)(s?):\/\//, 'ws$2://');
 
-class WebSocketService extends EventEmitter {
+class WebSocketService extends SimpleEventEmitter {
     constructor() {
         super();
         this.ws = null;
@@ -13,18 +40,15 @@ class WebSocketService extends EventEmitter {
 
     connect(apiKey) {
         if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
-            console.warn('[WebSocket] Connection attempt ignored, socket is already open or connecting.');
             return;
         }
 
         this.shouldReconnect = true;
         this.apiKey = apiKey;
 
-        console.log('[WebSocket] Attempting to connect to:', `${WS_URL}?apiKey=${this.apiKey}`);
         this.ws = new WebSocket(`${WS_URL}?apiKey=${this.apiKey}`);
 
         this.ws.onopen = () => {
-            console.log('[WebSocket] Connection established.');
             this.emit('connect');
         };
 
@@ -33,12 +57,11 @@ class WebSocketService extends EventEmitter {
                 const { type, payload } = JSON.parse(event.data);
                 this.emit(type, payload);
             } catch (error) {
-                console.error('[WebSocket] Error parsing message:', error);
+                console.error('Error parsing message:', error);
             }
         };
 
         this.ws.onclose = () => {
-            console.log('[WebSocket] Connection closed.');
             this.emit('disconnect');
             if (this.shouldReconnect) {
                 setTimeout(() => this.connect(this.apiKey), this.reconnectInterval);
@@ -46,7 +69,7 @@ class WebSocketService extends EventEmitter {
         };
 
         this.ws.onerror = (error) => {
-            console.error('[WebSocket] Error:', error);
+            console.error('WebSocket Error:', error);
             this.ws.close();
         };
     }
@@ -62,8 +85,6 @@ class WebSocketService extends EventEmitter {
     send(type, payload) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type, payload }));
-        } else {
-            console.error('[WebSocket] Cannot send message, not connected.');
         }
     }
 
