@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
+   "scripts": {
     "dev": "vite",
-  "build": "echo \"Building with API_URL: $VITE_API_URL\" && vite build"    "lint": "eslint .",
+    "build": "echo \"Building with API_URL: $VITE_API_URL\" && vite build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
