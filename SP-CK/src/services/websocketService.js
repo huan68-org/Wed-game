@@ -1,8 +1,7 @@
 import { EventEmitter } from 'events';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const WS_URL = API_URL.replace(/^http/, 'ws');
-
+const WS_URL = API_URL.replace(/^(http)(s?):\/\//, 'ws$2://');
 class WebSocketService extends EventEmitter {
     constructor() {
         super();
