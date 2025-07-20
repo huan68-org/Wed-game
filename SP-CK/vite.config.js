@@ -1,9 +1,10 @@
+// Cấu hình ĐẦY ĐỦ, CÓ phần xử lý 'events'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
+  optimizeDeps: { // <--- KHỐI NÀY ĐÃ ĐƯỢC THÊM TRỞ LẠI
     esbuildOptions: {
       define: {
         global: 'globalThis',
