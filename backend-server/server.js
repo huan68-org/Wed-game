@@ -268,7 +268,7 @@ wss.on('connection', async (ws, request, user) => {
     });
 });
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080; // Dòng này quan trọng nhất
 server.listen(PORT, () => {
-    console.log(`Server (HTTP & WebSocket) is running on port ${PORT}`);
+  console.log(`Server (HTTP & WebSocket) is running on port ${PORT}`);
 });
