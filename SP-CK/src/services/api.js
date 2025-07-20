@@ -1,106 +1,39 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-export const BASE_URL = 'http://localhost:8080';
 
-async function handleResponse(response) {
+const handleResponse = async (response) => {
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: `Lỗi Server: ${response.status} ${response.statusText}` }));
-        throw new Error(error.message || 'Đã có lỗi xảy ra');
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(errorData.message || 'Lỗi Server');
     }
     return response.json();
-}
+};
 
-export const register = async (username, password) => {
-    const response = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-    });
+const apiRequest = async (endpoint, method = 'GET', body = null, apiKey = null) => {
+    const headers = {
+        'Content-Type': 'application/json',
+    };
+    if (apiKey) {
+        headers['x-api-key'] = apiKey;
+    }
+    const config = {
+        method,
+        headers,
+    };
+    if (body) {
+        config.body = JSON.stringify(body);
+    }
+    const response = await fetch(`${API_URL}${endpoint}`, config);
     return handleResponse(response);
 };
 
-export const login = async (username, password) => {
-    const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-    });
-    return handleResponse(response);
-};
-
-export const getHistory = async (apiKey) => {
-    const response = await fetch(`${API_URL}/history`, {
-        headers: { 'x-api-key': apiKey }
-    });
-    return handleResponse(response);
-};
-
-export const saveGameToHistory = async (apiKey, gameData) => {
-    const response = await fetch(`${API_URL}/history`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify(gameData),
-    });
-    return handleResponse(response);
-};
-
-export const clearHistory = async (apiKey) => {
-    const response = await fetch(`${API_URL}/history`, {
-        method: 'DELETE',
-        headers: { 'x-api-key': apiKey },
-    });
-    return handleResponse(response);
-};
-
-export const getFriends = async (apiKey) => {
-    const response = await fetch(`${API_URL}/friends`, {
-        headers: { 'x-api-key': apiKey }
-    });
-    return handleResponse(response);
-};
-
-export const sendFriendRequest = async (apiKey, targetUsername) => {
-    const response = await fetch(`${API_URL}/friends/request`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify({ targetUsername }),
-    });
-    return handleResponse(response);
-};
-
-export const respondToFriendRequest = async (apiKey, requesterUsername, action) => {
-    const response = await fetch(`${API_URL}/friends/respond`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify({ requesterUsername, action }),
-    });
-    return handleResponse(response);
-};
-
-export const removeFriend = async (apiKey, friendUsername) => {
-    const response = await fetch(`${API_URL}/friends/${friendUsername}`, {
-        method: 'DELETE',
-        headers: { 'x-api-key': apiKey },
-    });
-    return handleResponse(response);
-};
-
-export const searchUsers = async (apiKey, query) => {
-    const response = await fetch(`${API_URL}/users/search?q=${query}`, {
-        headers: { 'x-api-key': apiKey }
-    });
-    return handleResponse(response);
-};
-
-export const validateApiKey = async (apiKey) => {
-    const response = await fetch(`${API_URL}/me`, {
-        headers: { 'x-api-key': apiKey }
-    }); 
-    return handleResponse(response);
-}; 
-
-export const getChatHistory = async (apiKey, friendUsername) => {
-    const response = await fetch(`${API_URL}/chat/${friendUsername}`, {
-        headers: { 'x-api-key': apiKey }
-    });
-    return handleResponse(response);
-};
+export const login = (username, password) => apiRequest('/api/login', 'POST', { username, password });
+export const register = (username, password) => apiRequest('/api/register', 'POST', { username, password });
+export const validateApiKey = (apiKey) => apiRequest('/api/me', 'GET', null, apiKey);
+export const getHistory = (apiKey) => apiRequest('/api/history', 'GET', null, apiKey);
+export const saveGameToHistory = (apiKey, gameData) => apiRequest('/api/history', 'POST', gameData, apiKey);
+export const getFriends = (apiKey) => apiRequest('/api/friends', 'GET', null, apiKey);
+export const searchUsers = (apiKey, query) => apiRequest(`/api/users/search?q=${encodeURIComponent(query)}`, 'GET', null, apiKey);
+export const sendFriendRequest = (apiKey, targetUsername) => apiRequest('/api/friends/request', 'POST', { targetUsername }, apiKey);
+export const respondToFriendRequest = (apiKey, requesterUsername, action) => apiRequest('/api/friends/respond', 'POST', { requesterUsername, action }, apiKey);
+export const removeFriend = (apiKey, friendUsername) => apiRequest(`/api/friends/${friendUsername}`, 'DELETE', null, apiKey);
+export const getChatHistory = (apiKey, friendUsername) => apiRequest(`/api/chat/${friendUsername}`, 'GET', null, apiKey);

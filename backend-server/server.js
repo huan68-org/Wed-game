@@ -17,14 +17,15 @@ const { handlePostGameAction } = require('./game-logic/postGameActionHandler.js'
 const { handleFriendRequest, handleFriendResponse, handleRemoveFriend } = require('./game-logic/friendActions.js');
 const { handleDirectMessage, getChatHistory } = require('./game-logic/chatHandler.js');
 const { saveNormalGameEndHistory } = require('./game-logic/historySaver.js');
+const { handleGameInvite, handleInviteAccept, handleInviteDecline } = require('./game-logic/gameInviteHandler.js');
 
 const gameRegistry = {
     caro: { create: createCaroGame, games: caroGames, handler: handleCaroEvents, reset: resetCaroGame, gameName: 'Cờ Caro', imageSrc: '/img/caro.jpg' },
     battleship: { create: createBattleshipGame, games: battleshipGames, handler: handleBattleshipEvents, reset: resetBattleshipGame, gameName: 'Bắn Tàu', imageSrc: '/img/battleship.jpg' }
 };
 
-const DATA_DIR = process.env.DATA_DIR || __dirname;
-const DB_FILE = path.join(DATA_DIR, 'database.json');
+const DB_FILE = path.join(__dirname, 'database.json');
+
 async function readDatabase() { try { await fs.access(DB_FILE); const data = await fs.readFile(DB_FILE, 'utf-8'); return JSON.parse(data); } catch (error) { return {}; } }
 async function writeDatabase(data) { await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf-8'); }
 
@@ -32,10 +33,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ noServer: true });
 
-app.use(cors({ 
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true
-}));
+app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -195,7 +193,6 @@ wss.on('connection', async (ws, request, user) => {
     clients.set(user, ws);
     console.log(`[CONNECTION] Client ${user} connected. Total clients: ${clients.size}`);
     
-    // --- LOGIC MỚI 1: THÔNG BÁO CHO BẠN BÈ KHI KẾT NỐI ---
     try {
         const database = await readDatabase();
         const userAccount = database[user];
@@ -217,21 +214,48 @@ wss.on('connection', async (ws, request, user) => {
             const { type, payload } = JSON.parse(message);
             const context = { clients, gameRegistry };
             
-            if (type === 'friend:get_online_list') {
-                // --- LOGIC MỚI 2: CHỈ TRẢ VỀ DANH SÁCH BẠN BÈ ĐANG ONLINE ---
-                console.log(`[MESSAGE] User ${ws.username} requested online friend list.`);
-                readDatabase().then(database => {
-                    const userAccount = database[ws.username];
-                    if (userAccount?.friends) {
-                        const myFriendUsernames = userAccount.friends.filter(f => f.status === 'friends').map(f => f.username);
-                        const myOnlineFriends = myFriendUsernames.filter(friendUsername => clients.has(friendUsername));
-                        ws.send(JSON.stringify({ type: 'friend:list_online', payload: myOnlineFriends }));
+            if (ws.roomId) {
+                const gameType = ws.roomId.split('_')[0];
+                const game = gameRegistry[gameType]?.games[ws.roomId];
+                if (!game) {
+                    ws.roomId = null;
+                    return;
+                }
+                
+                if (type === 'game:leave') {
+                    handleLeaveGame(ws, payload, context);
+                    return;
+                }
+
+                if (game.status === 'finished') {
+                    handlePostGameAction(ws, type, payload, { ...context, game });
+                } else {
+                    if (gameRegistry[gameType]?.handler) {
+                        gameRegistry[gameType].handler(ws, payload, { ...context, game });
                     }
-                });
-            } else if (ws.roomId) {
-                // ... logic trong game (giữ nguyên)
+                }
             } else {
-                // ... logic ở sảnh (giữ nguyên)
+                if (type.startsWith('game:invite')) {
+                    if (type === 'game:invite') handleGameInvite(ws, payload, context);
+                    if (type === 'game:invite_accepted') handleInviteAccept(ws, payload, context);
+                    if (type === 'game:invite_declined') handleInviteDecline(ws, payload, context);
+                } 
+                else if (type.endsWith(':find_match') || type.endsWith(':leave')) {
+                    handleMatchmaking(ws, type, payload, context);
+                }
+                else if (type === 'chat:dm') {
+                    handleDirectMessage(ws, payload, { clients, readDatabase, writeDatabase });
+                }
+                else if (type === 'friend:get_online_list') {
+                    readDatabase().then(database => {
+                        const userAccount = database[ws.username];
+                        if (userAccount?.friends) {
+                            const myFriendUsernames = userAccount.friends.filter(f => f.status === 'friends').map(f => f.username);
+                            const myOnlineFriends = myFriendUsernames.filter(friendUsername => clients.has(friendUsername));
+                            ws.send(JSON.stringify({ type: 'friend:list_online', payload: myOnlineFriends }));
+                        }
+                    });
+                }
             }
         } catch (error) {
             console.error('[WebSocket] Error processing message:', error);
