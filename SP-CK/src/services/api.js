@@ -1,4 +1,6 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';const handleResponse = async (response) => {
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+const handleResponse = async (response) => {
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
         throw new Error(errorData.message || 'Lỗi Server');
@@ -29,6 +31,7 @@ export const register = (username, password) => apiRequest('/api/register', 'POS
 export const validateApiKey = (apiKey) => apiRequest('/api/me', 'GET', null, apiKey);
 export const getHistory = (apiKey) => apiRequest('/api/history', 'GET', null, apiKey);
 export const saveGameToHistory = (apiKey, gameData) => apiRequest('/api/history', 'POST', gameData, apiKey);
+export const clearHistory = (apiKey) => apiRequest('/api/history', 'DELETE', null, apiKey); // HÀM MỚI
 export const getFriends = (apiKey) => apiRequest('/api/friends', 'GET', null, apiKey);
 export const searchUsers = (apiKey, query) => apiRequest(`/api/users/search?q=${encodeURIComponent(query)}`, 'GET', null, apiKey);
 export const sendFriendRequest = (apiKey, targetUsername) => apiRequest('/api/friends/request', 'POST', { targetUsername }, apiKey);
