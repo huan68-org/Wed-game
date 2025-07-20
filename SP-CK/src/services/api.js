@@ -1,5 +1,4 @@
-export const API_URL = window.VITE_API_URL || 'http://localhost:8080';
-const handleResponse = async (response) => {
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';const handleResponse = async (response) => {
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
         throw new Error(errorData.message || 'Lỗi Server');
