@@ -1,13 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      // Dòng này sẽ bảo Vite rằng: "Khi nào thấy code import 'events', 
-      // hãy lấy file từ package 'events' đã được cài đặt trong node_modules"
-      events: 'events',
-    },
-  },
+  plugins: [
+    react(),
+    nodePolyfills({
+      // Bật tất cả các polyfill để đảm bảo không thiếu gì
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      protocolImports: true,
+    }),
+  ],
 })
