@@ -17,7 +17,6 @@ const { handlePostGameAction } = require('./game-logic/postGameActionHandler.js'
 const { handleFriendRequest, handleFriendResponse, handleRemoveFriend } = require('./game-logic/friendActions.js');
 const { handleDirectMessage, getChatHistory } = require('./game-logic/chatHandler.js');
 const { saveNormalGameEndHistory } = require('./game-logic/historySaver.js');
-const { handleGameInvite, handleInviteAccept, handleInviteDecline } = require('./game-logic/gameInviteHandler.js');
 
 const gameRegistry = {
     caro: { create: createCaroGame, games: caroGames, handler: handleCaroEvents, reset: resetCaroGame, gameName: 'Cờ Caro', imageSrc: '/img/caro.jpg' },
