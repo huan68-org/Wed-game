@@ -9,11 +9,11 @@ class WebSocketService extends EventEmitter {
         this.ws = null;
         this.reconnectInterval = 5000;
         this.shouldReconnect = false;
-        this.apiKey = null; // Thêm dòng này để dễ theo dõi
+        this.apiKey = null;
     }
 
     connect(apiKey) {
-        console.log('[WebSocket] Gọi hàm connect với apiKey:', apiKey); // LOG 1: Kiểm tra apiKey đầu vào
+        console.log('[WebSocket] Gọi hàm connect với apiKey:', apiKey);
         
         if (!apiKey) {
             console.error('[WebSocket] Lỗi: Cố gắng kết nối mà không có apiKey.');
@@ -29,7 +29,7 @@ class WebSocketService extends EventEmitter {
         this.apiKey = apiKey;
 
         const connectionUrl = `${WS_URL}?apiKey=${this.apiKey}`;
-        console.log('[WebSocket] Đang cố gắng kết nối đến:', connectionUrl); // LOG 2: Kiểm tra URL kết nối
+        console.log('[WebSocket] Đang cố gắng kết nối đến:', connectionUrl);
         
         this.ws = new WebSocket(connectionUrl);
 
@@ -44,7 +44,7 @@ class WebSocketService extends EventEmitter {
                 const { type, payload } = JSON.parse(event.data);
                 console.log('[WebSocket] Đã phân tích tin nhắn - Type:', type, 'Payload:', payload);
                 this.emit(type, payload);
-            } catch (error)
+            } catch (error) {
                 console.error('[WebSocket] Lỗi phân tích tin nhắn (JSON.parse):', error);
             }
         };
@@ -60,7 +60,6 @@ class WebSocketService extends EventEmitter {
 
         this.ws.onerror = (error) => {
             console.error('🔥🔥🔥 [WebSocket] ONERROR: Đã xảy ra lỗi kết nối!', error);
-            // Không cần gọi this.ws.close() ở đây, vì sự kiện onclose sẽ tự động được kích hoạt sau onerror.
         };
     }
 
