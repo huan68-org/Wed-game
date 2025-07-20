@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
+  "build": "echo \"Building with API_URL: $VITE_API_URL\" && vite build"    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
