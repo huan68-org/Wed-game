@@ -4,7 +4,7 @@ import { useFriends } from '../context/FriendsContext';
 import Spline from "@splinetool/react-spline";
 import 'boxicons/css/boxicons.min.css';
 import ProfilePlayer from './ProfilePlayer';
-import * as websocketService from '../services/websocketService';
+import websocketService from '../services/websocketService';
 
 const Hero = () => {
   const [showProfile, setShowProfile] = useState(false);

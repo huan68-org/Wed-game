@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import * as websocketService from '../services/websocketService';
+import websocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
@@ -38,7 +38,7 @@ export const NotificationProvider = ({ children }) => {
         );
     };
 
-    const markAllAsRead = () => {
+    const markAllAsRead = () => {   
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
 

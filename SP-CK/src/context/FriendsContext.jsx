@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as api from '/src/services/api.js';
-import * as websocketService from '/src/services/websocketService.js';
+import websocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
 
 const FriendsContext = createContext(null);

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as api from '../services/api';
-import * as websocketService from '../services/websocketService';
+import websocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
 
 const ChatContext = createContext(null);
