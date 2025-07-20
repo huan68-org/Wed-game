@@ -1,6 +1,9 @@
+// src/services/websocketService.js
+
 import EventEmitter from 'eventemitter3';
 
-const WEBSOCKET_URL = 'ws://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const WS_URL = API_URL.replace(/^http/, 'ws');
 const emitter = new EventEmitter();
 let socket = null;
 
@@ -34,10 +37,7 @@ export function connect(apiKey) {
         try {
             const { type, payload } = JSON.parse(event.data);
             if (type) {
-                // --- LOG GỠ LỖI ---
-                // Dòng này sẽ in ra mọi sự kiện nhận được từ server trong console của trình duyệt.
                 console.log(`[WebSocket] Received event: '${type}' with payload:`, payload);
-                
                 emitter.emit(type, payload);
             }
         } catch (error) {
@@ -70,6 +70,10 @@ export function send(eventName, data) {
     } else {
         console.warn(`[WebSocket] Cannot send message, socket is not open. Event: ${eventName}`);
     }
+}
+
+export function isConnected() {
+    return socket && socket.readyState === WebSocketState.OPEN;
 }
 
 export const on = (eventName, callback) => emitter.on(eventName, callback);

@@ -11,41 +11,50 @@ export const NotificationProvider = ({ children }) => {
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
-        // Chỉ lắng nghe sự kiện khi người dùng đã đăng nhập
         if (!isAuthenticated) {
-            setNotifications([]); // Xóa thông báo khi đăng xuất
+            setNotifications([]);
             return;
         }
 
         const handleNewNotification = (payload) => {
-            // Thêm thông báo mới vào đầu danh sách, tránh trùng lặp nếu có id
             setNotifications(prev => {
                 if (payload.id && prev.some(n => n.id === payload.id)) {
                     return prev;
                 }
-                return [payload, ...prev];
+                return [{ ...payload, read: false }, ...prev];
             });
         };
 
-        // Lắng nghe sự kiện 'notification:new' từ WebSocket
         websocketService.on('notification:new', handleNewNotification);
 
-        // Dọn dẹp listener khi component unmount hoặc user thay đổi
         return () => {
             websocketService.off('notification:new', handleNewNotification);
         };
     }, [isAuthenticated]);
 
+    const markAsRead = (id) => {
+        setNotifications(prev => 
+            prev.map(n => n.id === id ? { ...n, read: true } : n)
+        );
+    };
+
+    const markAllAsRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+
     const clearAll = () => {
         setNotifications([]);
     };
 
-    const unreadCount = notifications.length;
+    // Đếm số thông báo chưa đọc
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     const value = {
         notifications,
         unreadCount,
         clearAll,
+        markAsRead,
+        markAllAsRead,
     };
 
     return (

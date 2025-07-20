@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useHistory } from '../context/HistoryContext';
+import { HistoryDisplay } from '../components/main-function/history';
 
-// --- CÁC HÀM TIỆN ÍCH ---
 const parseTimeToSeconds = (timeStr) => {
   if (!timeStr || typeof timeStr !== 'string') return 0;
   const minutesMatch = timeStr.match(/(\d+)m/);
@@ -31,8 +32,8 @@ const getRarityColor = (rarity) => {
     return colors[rarity] || 'from-gray-500 to-gray-600';
 };
 
-// --- COMPONENT CHÍNH ---
-const ProfilePlayer = ({ user, history = [], onClose }) => {
+const ProfilePlayer = ({ user, onClose }) => {
+  const { history } = useHistory();
   const [activeTab, setActiveTab] = useState('overview');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -92,7 +93,6 @@ const ProfilePlayer = ({ user, history = [], onClose }) => {
     const totalPlayTimeInSeconds = history.reduce((acc, game) => acc + parseTimeToSeconds(game.time), 0);
     const totalPlayTime = formatSecondsToTime(totalPlayTimeInSeconds);
     
-    // --- SỬA LỖI: Xử lý cả 'game' và 'gameName' ---
     const getGameName = (g) => g.game || g.gameName || '';
 
     const sudokuSolved = history.filter(g => getGameName(g).includes('Sudoku') && (g.result === 'Thắng' || g.result === 'Victory')).length;
@@ -129,7 +129,7 @@ const ProfilePlayer = ({ user, history = [], onClose }) => {
   const rankProgress = useMemo(() => {
       if (!currentRank || currentRank.maxPoints === currentRank.minPoints) return 0;
       const progress = ((derivedStats.rankPoints - currentRank.minPoints) / (currentRank.maxPoints - currentRank.minPoints + 1)) * 100;
-      return Math.max(0, Math.min(100, progress)); // Đảm bảo giá trị từ 0 đến 100
+      return Math.max(0, Math.min(100, progress));
   }, [derivedStats.rankPoints, currentRank]);
 
   useEffect(() => {
@@ -209,25 +209,7 @@ const ProfilePlayer = ({ user, history = [], onClose }) => {
             </div>
           )}
           {activeTab === 'history' && (
-            <div className="space-y-3">
-              {history.length > 0 ? (
-                history.map((game) => (
-                  <div key={game._id || game.id} className="bg-gray-800 p-4 rounded-lg flex justify-between items-center hover:bg-gray-700/50 transition-colors">
-                    <div>
-                      {/* --- SỬA LỖI --- */}
-                      <span className="font-bold text-white">{game.game || game.gameName}</span>
-                      <span className="text-xs text-gray-400 ml-4">{new Date(game.date).toLocaleString('vi-VN')}</span>
-                    </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <span className="text-yellow-400 w-24 text-right">{game.score ? `${game.score.toLocaleString()} điểm` : '-'}</span>
-                      <span className={`font-bold w-20 text-center ${game.result === 'Victory' || game.result === 'Thắng' ? 'text-green-400' : 'text-red-400'}`}>{game.result}</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-gray-400 mt-8">Chưa có lịch sử trận đấu nào.</p>
-              )}
-            </div>
+             <HistoryDisplay onBack={() => setActiveTab('overview')} />
           )}
           {activeTab === 'achievements' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

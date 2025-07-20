@@ -1,3 +1,5 @@
+// src/components/FriendsPage/FriendContextMenu.jsx
+
 import React, { useEffect, useRef } from 'react';
 import 'boxicons/css/boxicons.min.css';
 import { useChat } from '../../context/ChatContext';

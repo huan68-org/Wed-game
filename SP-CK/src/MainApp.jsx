@@ -7,8 +7,6 @@ import FriendsSidebar from './components/FriendsPage/FriendsSidebar.jsx';
 import { HistoryDisplay } from './components/main-function/history';
 import { gameList } from './GameList';
 import ChatTray from './components/chat/ChatTray.jsx';
-// --- BƯỚC 1: IMPORT COMPONENT MỚI ---
-import GameInviteManager from './components/main-function/GameInviteManager.jsx';
 
 const GameCard = ({ game, onPlay }) => (
     <div className="group relative cursor-pointer overflow-hidden rounded-lg shadow-lg transition-transform transform hover:scale-105" onClick={() => onPlay(game.key)}>
@@ -65,13 +63,7 @@ const MainApp = () => {
             </div>
             <ChatTray />
 
-            {/* --- BƯỚC 2: ĐẶT BỘ QUẢN LÝ LỜI MỜI VÀO ĐÂY --- */}
-            {/* 
-                Component này sẽ "sống" ở đây, lắng nghe các sự kiện WebSocket.
-                Nó sẽ "vô hình" cho đến khi có một lời mời chơi game,
-                lúc đó nó sẽ render component GameInvitePopup.
-            */}
-            <GameInviteManager />
+            
         </div>
     );
 }

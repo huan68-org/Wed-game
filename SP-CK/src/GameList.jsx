@@ -33,7 +33,7 @@ export const gameList = [
         key: 'photobooth',
         name: 'PhotoBooth Pro',
         description: 'Tạo và chỉnh sửa những tấm ảnh độc đáo.',
-        imageSrc: '/img/PhotoBoothApp.png',
+        imageSrc: '/img/Photo.jpg',
         Component: React.lazy(() => import('/src/components/PhotoboothGame/PhotoboothApp.jsx'))
     },
     // --- THÊM GAME PACMAN VÀO ĐÂY ---
@@ -41,7 +41,7 @@ export const gameList = [
         key: 'pacman',
         name: 'Pacman Premium',
         description: 'Trải nghiệm game arcade kinh điển, né ma và ăn hết các chấm!',
-        imageSrc: '/img/pacman.png', // Nhớ tạo ảnh này!
+        imageSrc: '/img/Pacman.jpg',
         Component: React.lazy(() => import('/src/components/PacmanGame/PacmanGame.jsx'))
     }
 ];

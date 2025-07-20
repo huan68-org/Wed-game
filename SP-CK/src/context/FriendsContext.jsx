@@ -1,3 +1,5 @@
+// src/context/FriendsContext.jsx
+
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as api from '/src/services/api.js';
 import * as websocketService from '/src/services/websocketService.js';
@@ -5,13 +7,30 @@ import { useAuth } from './AuthContext';
 
 const FriendsContext = createContext(null);
 
-// Dòng 'export const useFriends' bị trùng lặp đã được xóa khỏi đây.
-
 export const FriendsProvider = ({ children }) => {
     const { apiKey, isAuthenticated } = useAuth();
     const [friends, setFriends] = useState([]);
     const [requests, setRequests] = useState([]);
     const [onlineFriends, setOnlineFriends] = useState(new Set());
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            const handleConnect = () => {
+                console.log("[FriendsContext] WebSocket connected, requesting online list.");
+                websocketService.send('friend:get_online_list');
+            };
+
+            websocketService.on('connect', handleConnect);
+
+            if (websocketService.isConnected()) {
+                handleConnect();
+            }
+
+            return () => {
+                websocketService.off('connect', handleConnect);
+            };
+        }
+    }, [isAuthenticated]);
 
     const fetchAllFriendData = useCallback(async () => {
         if (!isAuthenticated || !apiKey) {
@@ -23,6 +42,7 @@ export const FriendsProvider = ({ children }) => {
 
         try {
             const allRelations = await api.getFriends(apiKey);
+            console.log("Dữ liệu bạn bè nhận được từ API:", allRelations);
             setFriends(allRelations.filter(r => r.status === 'friends'));
             setRequests(allRelations.filter(r => r.status !== 'friends'));
         } catch (error) {
@@ -39,24 +59,45 @@ export const FriendsProvider = ({ children }) => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        const handleFriendOnline = ({ username }) => setOnlineFriends(prev => new Set(prev).add(username));
-        const handleFriendOffline = ({ username }) => {
+        console.log("[FriendsContext] Bắt đầu lắng nghe sự kiện WebSocket.");
+
+        const handleFriendOnline = ({ username }) => {
+            console.log(`%c[EVENT] Received 'friend:online' for: ${username}`, 'color: lightgreen');
             setOnlineFriends(prev => {
                 const newSet = new Set(prev);
-                newSet.delete(username);
+                newSet.add(username);
+                console.log("[STATE UPDATE] onlineFriends sau khi 'add':", newSet);
                 return newSet;
             });
         };
-        const handleOnlineList = (onlineUsernames) => setOnlineFriends(new Set(onlineUsernames));
+
+        const handleFriendOffline = ({ username }) => {
+            console.log(`%c[EVENT] Received 'friend:offline' for: ${username}`, 'color: orange');
+            setOnlineFriends(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(username);
+                console.log("[STATE UPDATE] onlineFriends sau khi 'delete':", newSet);
+                return newSet;
+            });
+        };
+
+        const handleOnlineList = (onlineUsernames) => {
+            console.log(`%c[EVENT] Received 'friend:list_online' with payload:`, 'color: cyan', onlineUsernames);
+            if (Array.isArray(onlineUsernames)) {
+                const newSet = new Set(onlineUsernames);
+                console.log("[STATE UPDATE] onlineFriends được thiết lập lại thành:", newSet);
+                setOnlineFriends(newSet);
+            } else {
+                console.error("[ERROR] Payload của 'friend:list_online' không phải là một mảng!", onlineUsernames);
+            }
+        };
 
         const handleFriendChange = () => {
-            console.log("[FriendsContext] Friend data changed via direct event, refetching...");
             fetchAllFriendData();
         };
 
         const handleNewNotification = (payload) => {
             if (payload && payload.type === 'friend_request') {
-                console.log("[FriendsContext] Received a friend request notification, refetching friends list...");
                 fetchAllFriendData();
             }
         };
@@ -70,6 +111,7 @@ export const FriendsProvider = ({ children }) => {
         websocketService.on('notification:new', handleNewNotification);
 
         return () => {
+            console.log("[FriendsContext] Ngừng lắng nghe sự kiện WebSocket.");
             websocketService.off('friend:online', handleFriendOnline);
             websocketService.off('friend:offline', handleFriendOffline);
             websocketService.off('friend:list_online', handleOnlineList);
@@ -122,7 +164,6 @@ export const FriendsProvider = ({ children }) => {
     );
 };
 
-// Đây là định nghĩa đúng và duy nhất của hook useFriends
 export const useFriends = () => {
     const context = useContext(FriendsContext);
     if (!context) {

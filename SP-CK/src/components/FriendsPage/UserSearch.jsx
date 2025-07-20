@@ -1,4 +1,3 @@
-// src/components/Friends/UserSearch.jsx
 import React, { useState } from 'react';
 import * as api from '../../services/api.js';
 import { useAuth } from '../../context/AuthContext';
@@ -35,6 +34,7 @@ const UserSearch = () => {
     };
     
     const handleAddFriend = async (username) => {
+        console.log("API Key được sử dụng để gửi đi (từ React Context):", apiKey);
         try {
             const res = await sendFriendRequest(username);
             alert(res.message);

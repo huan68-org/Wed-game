@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useFriends } from '../context/FriendsContext';
 import Spline from "@splinetool/react-spline";
 import 'boxicons/css/boxicons.min.css';
 import ProfilePlayer from './ProfilePlayer';
+import * as websocketService from '../services/websocketService';
 
-const Hero = ({ user }) => {
+const Hero = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [currentGameAd, setCurrentGameAd] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
-  // --- THAY ĐỔI: LẤY HISTORY TỪ AUTHCONTEXT ---
-  // Không cần state và useEffect để fetch history ở đây nữa.
-  // AuthContext sẽ là nguồn dữ liệu duy nhất và đáng tin cậy.
-  const { history } = useAuth();
-  
-  // --- THAY ĐỔI: TÍNH TOÁN gameStats TỪ HISTORY CỦA CONTEXT ---
-  // Sử dụng useMemo để chỉ tính toán lại khi history thay đổi.
+  const { user, history } = useAuth();
+  const { onlineFriends } = useFriends();
+
   const gameStats = useMemo(() => {
     if (!history || history.length === 0) {
       return { totalGames: 0, wins: 0, level: 1 };
@@ -25,13 +23,23 @@ const Hero = ({ user }) => {
     const experience = wins * 100 + totalGames * 25;
     const level = Math.floor(experience / 1000) + 1;
     return { totalGames, wins, level };
-  }, [history]); // Phụ thuộc vào history từ context
+  }, [history]);
 
-  // Temporary fallback values for WebSocket
-  const isConnected = true;
-  const onlineFriends = [];
+  const [isConnected, setIsConnected] = useState(websocketService.isConnected());
 
-  // Enhanced Game advertisements data
+  useEffect(() => {
+    const handleConnect = () => setIsConnected(true);
+    const handleDisconnect = () => setIsConnected(false);
+
+    websocketService.on('connect', handleConnect);
+    websocketService.on('disconnect', handleDisconnect);
+
+    return () => {
+        websocketService.off('connect', handleConnect);
+        websocketService.off('disconnect', handleDisconnect);
+    };
+  }, []);
+
   const gameAds = [
     { id: 1, title: "SUDOKU MASTER", subtitle: "Thách thức trí tuệ", description: "Giải những câu đố khó nhất, trở thành bậc thầy Sudoku với AI thông minh", gradient: "from-purple-600 via-pink-600 to-red-500", icon: "🧩", badge: "HOT", players: "1.2M+", rating: 4.9, category: "Puzzle", difficulty: "★★★☆☆" },
     { id: 2, title: "PUZZLE ADVENTURE", subtitle: "Cuộc phiêu lưu xếp hình", description: "Khám phá thế giới kỳ diệu qua những mảnh ghép đầy màu sắc và âm nhạc sống động", gradient: "from-blue-600 via-cyan-500 to-teal-400", icon: "🎯", badge: "NEW", players: "850K+", rating: 4.8, category: "Adventure", difficulty: "★★☆☆☆" },
@@ -39,7 +47,6 @@ const Hero = ({ user }) => {
     { id: 4, title: "BATTLESHIP WARS", subtitle: "Chiến tranh hạm đội", description: "Chỉ huy hạm đội của bạn, thống trị đại dương với đồ họa 3D tuyệt đẹp", gradient: "from-gray-700 via-blue-600 to-indigo-800", icon: "🚢", badge: "EPIC", players: "950K+", rating: 4.6, category: "Action", difficulty: "★★★★★" }
   ];
 
-  // Mouse tracking for 3D effects
   useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePosition({
@@ -51,7 +58,6 @@ const Hero = ({ user }) => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Auto rotate game ads with smooth transitions
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentGameAd((prev) => (prev + 1) % gameAds.length);
@@ -66,10 +72,9 @@ const Hero = ({ user }) => {
   const currentAd = gameAds[currentGameAd];
   const winRate = gameStats.totalGames > 0 ? Math.round((gameStats.wins / gameStats.totalGames) * 100) : 0;
 
-  // Get connection status color and text
   const getConnectionStatus = () => {
     return isConnected
-      ? { color: 'from-green-600/80 via-blue-600/80 to-purple-500/80', text: `${onlineFriends.length} BẠN ONLINE`, icon: 'bx-wifi', iconColor: 'text-green-400', dotColor: 'bg-green-400' }
+      ? { color: 'from-green-600/80 via-blue-600/80 to-purple-500/80', text: `${onlineFriends.size} BẠN ONLINE`, icon: 'bx-wifi', iconColor: 'text-green-400', dotColor: 'bg-green-400' }
       : { color: 'from-red-600/80 via-orange-600/80 to-yellow-500/80', text: 'ĐANG KẾT NỐI...', icon: 'bx-wifi-off', iconColor: 'text-red-400', dotColor: 'bg-red-400' };
   };
 
@@ -170,7 +175,7 @@ const Hero = ({ user }) => {
                   <div className="text-xs text-gray-400">Trận đã chơi</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">{onlineFriends.length}</div>
+                  <div className="text-2xl font-bold text-green-400">{onlineFriends.size}</div>
                   <div className="text-xs text-gray-400">Bạn bè online</div>
                 </div>
                 <div className="text-center">
@@ -276,16 +281,10 @@ const Hero = ({ user }) => {
           </div>
         </div>
       </div>
-
-      <div className="fixed bottom-8 right-8 z-30 flex flex-col gap-4">
-        <button className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 animate-bounce-slow"><i className="bx bx-support text-2xl"></i></button>
-        <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all duration-300"><i className="bx bx-chat text-2xl"></i></button>
-      </div>
       
       {showProfile && (
         <ProfilePlayer 
           user={user} 
-          history={history} // history này bây giờ sẽ luôn là mới nhất
           onClose={() => setShowProfile(false)} 
         />
       )}

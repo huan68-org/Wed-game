@@ -9,20 +9,16 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-    const { notifications, unreadCount, clearAll } = useNotifications();
+    const { notifications, unreadCount, clearAll, markAsRead, markAllAsRead } = useNotifications();
 
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
+        const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     useEffect(() => {
-        const handleMouseMove = (e) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
-        };
+        const handleMouseMove = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
@@ -33,7 +29,15 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
         setIsMobileMenuOpen(false);
     };
 
+    const handleToggleNotifications = () => {
+        if (!showNotifications) {
+            markAllAsRead();
+        }
+        setShowNotifications(prev => !prev);
+    };
+
     const handleNotificationClick = (notification) => {
+        markAsRead(notification.id);
         if (notification.type === 'friend_request') {
             onNavigate('friends');
         }
@@ -125,7 +129,7 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
 
                         <div className="flex items-center gap-4">
                             <div className="relative">
-                                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-3 text-gray-300 hover:text-white transition-all duration-300 hover:bg-white/10 rounded-xl group">
+                                <button onClick={handleToggleNotifications} className="relative p-3 text-gray-300 hover:text-white transition-all duration-300 hover:bg-white/10 rounded-xl group">
                                     <i className="bx bx-bell text-xl group-hover:animate-bounce"></i>
                                     {unreadCount > 0 && (
                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
@@ -147,7 +151,7 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                                                     <div 
                                                         key={notif.id} 
                                                         onClick={() => handleNotificationClick(notif)}
-                                                        className="p-4 border-b border-gray-800/50 hover:bg-white/5 transition-colors cursor-pointer"
+                                                        className={`p-4 border-b border-gray-800/50 hover:bg-white/5 transition-colors cursor-pointer ${notif.read ? 'opacity-60' : ''}`}
                                                     >
                                                         <div className="flex items-start gap-3">
                                                             <span className="text-2xl mt-1">
