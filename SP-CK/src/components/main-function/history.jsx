@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHistory } from '../../context/HistoryContext';
 import { formatTime } from './time';
-import { BASE_URL } from '../../services/api'; // Import BASE_URL
+import { API_URL } from '../../services/api';
 
 const getResultClass = (result) => {
     switch (result) {
@@ -46,7 +46,7 @@ export const HistoryDisplay = ({ onBack }) => {
                     {history.map((game) => {
                         // TẠO ĐƯỜNG DẪN ẢNH ĐẦY ĐỦ Ở ĐÂY
                         const fullImageSrc = game.imageSrc && game.imageSrc.startsWith('/uploads')
-                            ? `${BASE_URL}${game.imageSrc}`
+                            ? `${API_URL}${game.imageSrc}`
                             : game.imageSrc;
 
                         return (
