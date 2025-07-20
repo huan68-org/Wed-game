@@ -30,7 +30,7 @@ async function writeDatabase(data) { await fs.writeFile(DB_FILE, JSON.stringify(
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ noServer: true });
+const wss = new WebSocketServer({ server }); // THAY ĐỔI QUAN TRỌNG: GẮN TRỰC TIẾP
 
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
@@ -175,100 +175,111 @@ app.post('/api/friends/respond', authenticateUser, (req, res) => handleFriendRes
 app.delete('/api/friends/:friendUsername', authenticateUser, (req, res) => handleRemoveFriend(req, res, apiHandlerContext));
 app.get('/api/chat/:friendUsername', authenticateUser, (req, res) => getChatHistory(req, res, apiHandlerContext));
 
-server.on('upgrade', async (request, socket, head) => {
-    const { query } = url.parse(request.url, true);
-    const apiKey = query.apiKey;
-    if (!apiKey) return socket.destroy();
-    const database = await readDatabase();
-    const user = Object.keys(database).find(username => database[username] && database[username].credentials && database[username].credentials.apiKey === apiKey);
-    if (!user) return socket.destroy();
-    wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request, user);
-    });
-});
+// KHỐI server.on('upgrade') ĐÃ ĐƯỢC XÓA HOÀN TOÀN
 
-wss.on('connection', async (ws, request, user) => {
-    ws.username = user;
-    clients.set(user, ws);
-    console.log(`[CONNECTION] Client ${user} connected. Total clients: ${clients.size}`);
-    
+wss.on('connection', async (ws, request) => {
     try {
-        const database = await readDatabase();
-        const userAccount = database[user];
-        if (userAccount?.friends) {
-            const myFriends = userAccount.friends.filter(f => f.status === 'friends').map(f => f.username);
-            myFriends.forEach(friendUsername => {
-                const friendClient = clients.get(friendUsername);
-                if (friendClient?.readyState === 1) {
-                    friendClient.send(JSON.stringify({ type: 'friend:online', payload: { username: user } }));
-                }
-            });
+        const { query } = url.parse(request.url, true);
+        const apiKey = query.apiKey;
+
+        if (!apiKey) {
+            console.log('[WebSocket] Connection rejected: No API key provided.');
+            return ws.close(1008, 'API Key is required');
         }
-    } catch (e) {
-        console.error("Error notifying friends on connect:", e);
-    }
 
-    ws.on('message', (message) => {
+        const database = await readDatabase();
+        const user = Object.keys(database).find(username => database[username] && database[username].credentials && database[username].credentials.apiKey === apiKey);
+
+        if (!user) {
+            console.log(`[WebSocket] Connection rejected: Invalid API key.`);
+            return ws.close(1008, 'Invalid API Key');
+        }
+
+        // --- TỪ ĐÂY LÀ TOÀN BỘ LOGIC CŨ CỦA BẠN - GIỮ NGUYÊN ---
+        ws.username = user;
+        clients.set(user, ws);
+        console.log(`[CONNECTION] Client ${user} connected. Total clients: ${clients.size}`);
+        
         try {
-            const { type, payload } = JSON.parse(message);
-            const context = { clients, gameRegistry };
-            
-            if (ws.roomId) {
-                const gameType = ws.roomId.split('_')[0];
-                const game = gameRegistry[gameType]?.games[ws.roomId];
-                if (!game) {
-                    ws.roomId = null;
-                    return;
-                }
-                
-                if (type === 'game:leave') {
-                    handleLeaveGame(ws, payload, context);
-                    return;
-                }
+            const userAccount = database[user];
+            if (userAccount?.friends) {
+                const myFriends = userAccount.friends.filter(f => f.status === 'friends').map(f => f.username);
+                myFriends.forEach(friendUsername => {
+                    const friendClient = clients.get(friendUsername);
+                    if (friendClient?.readyState === 1) {
+                        friendClient.send(JSON.stringify({ type: 'friend:online', payload: { username: user } }));
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error notifying friends on connect:", e);
+        }
 
-                if (game.status === 'finished') {
-                    handlePostGameAction(ws, type, payload, { ...context, game });
+        ws.on('message', (message) => {
+            try {
+                const { type, payload } = JSON.parse(message);
+                const context = { clients, gameRegistry };
+                
+                if (ws.roomId) {
+                    const gameType = ws.roomId.split('_')[0];
+                    const game = gameRegistry[gameType]?.games[ws.roomId];
+                    if (!game) {
+                        ws.roomId = null;
+                        return;
+                    }
+                    
+                    if (type === 'game:leave') {
+                        handleLeaveGame(ws, payload, context);
+                        return;
+                    }
+
+                    if (game.status === 'finished') {
+                        handlePostGameAction(ws, type, payload, { ...context, game });
+                    } else {
+                        if (gameRegistry[gameType]?.handler) {
+                            gameRegistry[gameType].handler(ws, payload, { ...context, game });
+                        }
+                    }
                 } else {
-                    if (gameRegistry[gameType]?.handler) {
-                        gameRegistry[gameType].handler(ws, payload, { ...context, game });
+                    if (type.startsWith('game:invite')) {
+                        if (type === 'game:invite') handleGameInvite(ws, payload, context);
+                        if (type === 'game:invite_accepted') handleInviteAccept(ws, payload, context);
+                        if (type === 'game:invite_declined') handleInviteDecline(ws, payload, context);
+                    } 
+                    else if (type.endsWith(':find_match') || type.endsWith(':leave')) {
+                        handleMatchmaking(ws, type, payload, context);
+                    }
+                    else if (type === 'chat:dm') {
+                        handleDirectMessage(ws, payload, { clients, readDatabase, writeDatabase });
+                    }
+                    else if (type === 'friend:get_online_list') {
+                        readDatabase().then(database => {
+                            const userAccount = database[ws.username];
+                            if (userAccount?.friends) {
+                                const myFriendUsernames = userAccount.friends.filter(f => f.status === 'friends').map(f => f.username);
+                                const myOnlineFriends = myFriendUsernames.filter(friendUsername => clients.has(friendUsername));
+                                ws.send(JSON.stringify({ type: 'friend:list_online', payload: myOnlineFriends }));
+                            }
+                        });
                     }
                 }
-            } else {
-                if (type.startsWith('game:invite')) {
-                    if (type === 'game:invite') handleGameInvite(ws, payload, context);
-                    if (type === 'game:invite_accepted') handleInviteAccept(ws, payload, context);
-                    if (type === 'game:invite_declined') handleInviteDecline(ws, payload, context);
-                } 
-                else if (type.endsWith(':find_match') || type.endsWith(':leave')) {
-                    handleMatchmaking(ws, type, payload, context);
-                }
-                else if (type === 'chat:dm') {
-                    handleDirectMessage(ws, payload, { clients, readDatabase, writeDatabase });
-                }
-                else if (type === 'friend:get_online_list') {
-                    readDatabase().then(database => {
-                        const userAccount = database[ws.username];
-                        if (userAccount?.friends) {
-                            const myFriendUsernames = userAccount.friends.filter(f => f.status === 'friends').map(f => f.username);
-                            const myOnlineFriends = myFriendUsernames.filter(friendUsername => clients.has(friendUsername));
-                            ws.send(JSON.stringify({ type: 'friend:list_online', payload: myOnlineFriends }));
-                        }
-                    });
-                }
+            } catch (error) {
+                console.error('[WebSocket] Error processing message:', error);
             }
-        } catch (error) {
-            console.error('[WebSocket] Error processing message:', error);
-        }
-    });
-    
-    ws.on('close', () => {
-        clients.delete(user);
-        console.log(`[DISCONNECT] Client ${user} disconnected. Total clients: ${clients.size}`);
-        handleDisconnect(ws, { clients, gameRegistry });
-    });
+        });
+        
+        ws.on('close', () => {
+            clients.delete(user);
+            console.log(`[DISCONNECT] Client ${user} disconnected. Total clients: ${clients.size}`);
+            handleDisconnect(ws, { clients, gameRegistry });
+        });
+    } catch (error) {
+        console.error('[WebSocket] Error during connection setup:', error);
+        ws.close(1011, 'Internal server error');
+    }
 });
 
-const PORT = process.env.PORT || 8080; // Dòng này quan trọng nhất
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`Server (HTTP & WebSocket) is running on port ${PORT}`);
 });

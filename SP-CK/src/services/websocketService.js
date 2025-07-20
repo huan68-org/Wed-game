@@ -2,23 +2,16 @@ import { EventEmitter } from 'events';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const WS_URL = API_URL.replace(/^(http)(s?):\/\//, 'ws$2://');
+
 class WebSocketService extends EventEmitter {
     constructor() {
         super();
         this.ws = null;
         this.reconnectInterval = 5000;
         this.shouldReconnect = false;
-        this.apiKey = null;
     }
 
     connect(apiKey) {
-        console.log('[WebSocket] Gọi hàm connect với apiKey:', apiKey);
-        
-        if (!apiKey) {
-            console.error('[WebSocket] Lỗi: Cố gắng kết nối mà không có apiKey.');
-            return;
-        }
-        
         if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
             console.warn('[WebSocket] Connection attempt ignored, socket is already open or connecting.');
             return;
@@ -27,43 +20,38 @@ class WebSocketService extends EventEmitter {
         this.shouldReconnect = true;
         this.apiKey = apiKey;
 
-        const connectionUrl = `${WS_URL}?apiKey=${this.apiKey}`;
-        console.log('[WebSocket] Đang cố gắng kết nối đến:', connectionUrl);
-        
-        this.ws = new WebSocket(connectionUrl);
+        console.log('[WebSocket] Attempting to connect to:', `${WS_URL}?apiKey=${this.apiKey}`);
+        this.ws = new WebSocket(`${WS_URL}?apiKey=${this.apiKey}`);
 
         this.ws.onopen = () => {
-            console.log('✅✅✅ [WebSocket] ONOPEN: Kết nối đã được thiết lập thành công!');
+            console.log('[WebSocket] Connection established.');
             this.emit('connect');
         };
 
         this.ws.onmessage = (event) => {
-            console.log('📬📬📬 [WebSocket] ONMESSAGE: Nhận được tin nhắn từ server:', event.data);
             try {
                 const { type, payload } = JSON.parse(event.data);
-                console.log('[WebSocket] Đã phân tích tin nhắn - Type:', type, 'Payload:', payload);
                 this.emit(type, payload);
             } catch (error) {
-                console.error('[WebSocket] Lỗi phân tích tin nhắn (JSON.parse):', error);
+                console.error('[WebSocket] Error parsing message:', error);
             }
         };
 
-        this.ws.onclose = (event) => {
-            console.log('❌❌❌ [WebSocket] ONCLOSE: Kết nối đã bị đóng.', 'Code:', event.code, 'Reason:', event.reason);
+        this.ws.onclose = () => {
+            console.log('[WebSocket] Connection closed.');
             this.emit('disconnect');
             if (this.shouldReconnect) {
-                console.log(`[WebSocket] Sẽ kết nối lại sau ${this.reconnectInterval / 1000} giây...`);
                 setTimeout(() => this.connect(this.apiKey), this.reconnectInterval);
             }
         };
 
         this.ws.onerror = (error) => {
-            console.error('🔥🔥🔥 [WebSocket] ONERROR: Đã xảy ra lỗi kết nối!', error);
+            console.error('[WebSocket] Error:', error);
+            this.ws.close();
         };
     }
 
     disconnect() {
-        console.log('[WebSocket] Gọi hàm disconnect.');
         this.shouldReconnect = false;
         if (this.ws) {
             this.ws.close();
@@ -73,11 +61,9 @@ class WebSocketService extends EventEmitter {
 
     send(type, payload) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message = JSON.stringify({ type, payload });
-            console.log('[WebSocket] Đang gửi tin nhắn:', message);
-            this.ws.send(message);
+            this.ws.send(JSON.stringify({ type, payload }));
         } else {
-            console.error('[WebSocket] Không thể gửi tin nhắn, kết nối chưa sẵn sàng. Trạng thái hiện tại:', this.ws ? this.ws.readyState : 'null');
+            console.error('[WebSocket] Cannot send message, not connected.');
         }
     }
 
