@@ -2,8 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as api from '../services/api';
-import * as websocketService from '../services/websocketService';
-
+import websocketService from '../services/websocketService';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
