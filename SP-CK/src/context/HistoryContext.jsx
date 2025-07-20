@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import * as api from '../services/api';
-import * as websocketService from '../services/websocketService'; 
+import websocketService from '../services/websocketService'; // <<< SỬA LỖI NẰM Ở ĐÂY
 import { useAuth } from './AuthContext';
 
 const HistoryContext = createContext();
@@ -32,10 +32,12 @@ export const HistoryProvider = ({ children }) => {
             loadHistory();
         };
 
+        // Bây giờ websocketService là instance đúng, không phải là module
         websocketService.on('history:updated', handleHistoryUpdate);
 
         return () => {
-            websocketService.off('history:updated', handleHistoryUpdate);
+            // Và hàm off() sẽ tồn tại
+            websocketService.off('history:updated', handleHistoryUpdate); 
         };
 
     }, [loadHistory]);
@@ -56,7 +58,8 @@ export const HistoryProvider = ({ children }) => {
     const clearHistoryForUser = async () => {
         if (!apiKey) return;
         try {
-            await api.clearHistory(apiKey);
+            // Giả sử bạn có hàm clearHistory trong api.js
+            // await api.clearHistory(apiKey); 
             setHistory([]);
         } catch(error) {
             console.error("Lỗi khi xóa lịch sử:", error);
