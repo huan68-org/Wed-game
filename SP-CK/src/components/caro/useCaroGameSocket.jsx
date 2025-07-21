@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import * as websocketService from '../../services/websocketService';
+import websocketService from '../../services/websocketService';
 import { useHistory } from '../../context/HistoryContext';
 import { useAuth } from '../../context/AuthContext';
 
