@@ -11,7 +11,7 @@ const ImageUploader = ({ onUploadSuccess }) => {
         formData.append('puzzleImage', file);
 
         try {
-            const response = await fetch('http://localhost:8080/api/upload/puzzle-image', {
+            const response = await fetch('https://wed-game-backend.onrender.com/api/upload/puzzle-image', {
                 method: 'POST',
                 body: formData,
             });
