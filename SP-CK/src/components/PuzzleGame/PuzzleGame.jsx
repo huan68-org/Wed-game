@@ -7,6 +7,8 @@ import PuzzleBoard from './PuzzleBoard';
 import WinMessage from './WinMessage';
 import PieceTray from './PieceTray';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const shuffleArray = (array) => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -103,7 +105,7 @@ const PuzzleGame = () => {
     };
     
     const handleUploadSuccess = (imageUrl) => {
-        setImageSrc(`http://localhost:8080${imageUrl}`);
+        setImageSrc(`${API_BASE_URL}${imageUrl}`);
         setGameStarted(false);
         setIsSolved(false);
     };

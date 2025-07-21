@@ -175,8 +175,6 @@ app.post('/api/friends/respond', authenticateUser, (req, res) => handleFriendRes
 app.delete('/api/friends/:friendUsername', authenticateUser, (req, res) => handleRemoveFriend(req, res, apiHandlerContext));
 app.get('/api/chat/:friendUsername', authenticateUser, (req, res) => getChatHistory(req, res, apiHandlerContext));
 
-// KHỐI server.on('upgrade') ĐÃ ĐƯỢC XÓA HOÀN TOÀN
-
 wss.on('connection', async (ws, request) => {
     try {
         const { query } = url.parse(request.url, true);
@@ -195,7 +193,6 @@ wss.on('connection', async (ws, request) => {
             return ws.close(1008, 'Invalid API Key');
         }
 
-        // --- TỪ ĐÂY LÀ TOÀN BỘ LOGIC CŨ CỦA BẠN - GIỮ NGUYÊN ---
         ws.username = user;
         clients.set(user, ws);
         console.log(`[CONNECTION] Client ${user} connected. Total clients: ${clients.size}`);
