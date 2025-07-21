@@ -82,11 +82,19 @@ class WebSocketService extends SimpleEventEmitter {
         }
     }
 
-    send(type, payload) {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type, payload }));
-        }
+   // (Lưu ý: đổi tên hàm 'send' thành 'emit' nếu cần)
+emit(type, payload) { 
+    console.log(`2. [WebSocketService] Đang cố gắng gửi: '${type}'`);
+    
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        console.log("3. [WebSocketService] THÀNH CÔNG: Socket đang mở. Đang gửi dữ liệu.");
+        this.ws.send(JSON.stringify({ type, payload }));
+    } else {
+        console.error("3. [WebSocketService] THẤT BẠI: Socket không mở.", {
+            readyState: this.ws ? this.ws.readyState : 'Socket is null'
+        });
     }
+}
 
     isConnected() {
         return this.ws && this.ws.readyState === WebSocket.OPEN;

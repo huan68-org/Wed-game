@@ -118,6 +118,7 @@ export const useCaroGameSocket = () => {
     }, [apiKey, saveGameForUser, updateGameState]);
 
     const findMatch = () => {
+        console.log("[useCaroGameSocket] Hàm findMatch được gọi.");
         const newMatchmakingId = generateId();
         matchmakingIdRef.current = newMatchmakingId;
         updateGameState({ status: 'waiting' });
