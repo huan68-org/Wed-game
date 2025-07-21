@@ -4,7 +4,6 @@ import { NotificationProvider } from './context/NotificationContext';
 import LoginSignUpForm from './components/login/LoginSignUpForm.jsx';
 import MainApp from './MainApp';
 
-// Component con để có thể truy cập context từ AuthProvider
 function AppContent() {
     const { isAuthenticated, isLoading } = useAuth();
 
@@ -15,7 +14,6 @@ function AppContent() {
     return isAuthenticated ? <MainApp /> : <LoginSignUpForm />;
 }
 
-// Component App chính để bọc các Provider theo đúng thứ tự
 function App() {
     return (
         <AuthProvider>
