@@ -1,148 +1,57 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import * as websocketService from '/src/services/websocketService.js';
-import { useHistory } from '/src/context/HistoryContext.jsx';
-import { useAuth } from '/src/context/AuthContext.jsx';
+import React from 'react';
 
-const generateId = () => Math.random().toString(36).substring(2, 15);
+// Đây là component CaroPage "giả" để thực hiện thí nghiệm.
+const CaroPage = ({ onBack }) => {
 
-export const useCaroGameSocket = () => {
-    const { saveGameForUser } = useHistory();
-    const { apiKey } = useAuth();
-
-    const [gameState, setGameState] = useState({
-        status: 'lobby',
-        roomId: null,
-        board: Array(100).fill(null),
-        isMyTurn: false,
-        mySymbol: null,
-        opponent: null,
-        winner: null,
-        winningLine: [],
-        postGameStatus: 'none',
-    });
-    
-    const matchmakingIdRef = useRef(null);
-    const gameStateRef = useRef(gameState);
-    const isRematchingRef = useRef(false);
-
-    const updateGameState = useCallback((updates) => {
-        setGameState(prev => {
-            const newState = { ...prev, ...updates };
-            gameStateRef.current = newState;
-            return newState;
-        });
-    }, []);
-
-    useEffect(() => {
-        const handleGameStart = (data) => {
-            isRematchingRef.current = false;
-            matchmakingIdRef.current = null;
-            updateGameState({
-                status: 'playing',
-                roomId: data.roomId,
-                board: data.board,
-                isMyTurn: data.isMyTurn,
-                mySymbol: data.mySymbol,
-                opponent: data.opponent,
-                winner: null,
-                winningLine: [],
-                postGameStatus: 'none',
-            });
-        };
-        const handleWaiting = (data) => {
-            if (data && matchmakingIdRef.current === data.matchmakingId) {
-                updateGameState({ status: 'waiting' });
-            }
-        };
-        const handleError = (data) => {
-            alert(`Lỗi: ${data.message}`);
-            matchmakingIdRef.current = null;
-            updateGameState({ status: 'lobby' });
-        };
-        const handleGameUpdate = (data) => {
-            if (data.disconnectMessage) {
-                alert(data.disconnectMessage);
-            }
-            updateGameState(data);
-            if (data.status === 'finished' && !data.disconnectMessage) {
-                const currentState = gameStateRef.current;
-                const isWin = data.winner === currentState.mySymbol;
-                const resultText = data.winner ? (isWin ? 'Thắng' : 'Thua') : 'Hòa';
-                const gameResult = {
-                    gameName: 'Cờ Caro',
-                    difficulty: `Online vs ${currentState.opponent}`,
-                    result: resultText,
-                    imageSrc: '/img/caro.jpg'
-                };
-                saveGameForUser(apiKey, gameResult);
-            }
-        };
-        const handleWaitingRematch = () => {
-            updateGameState({ postGameStatus: 'waiting_rematch' });
-        };
-        const handleRematchRequested = () => {
-            updateGameState({ postGameStatus: 'rematch_requested' });
-        };
-        const handleRematchDeclined = (payload) => {
-            alert(`Đối thủ ${payload.from} đã rời trận.`);
-            updateGameState({ status: 'lobby', roomId: null, postGameStatus: 'none' });
-        };
-
-        websocketService.on('caro:game_start', handleGameStart);
-        websocketService.on('caro:update', handleGameUpdate);
-        websocketService.on('caro:waiting', handleWaiting);
-        websocketService.on('caro:error', handleError);
-        websocketService.on('caro:waiting_rematch', handleWaitingRematch);
-        websocketService.on('caro:rematch_requested', handleRematchRequested);
-        websocketService.on('caro:rematch_declined', handleRematchDeclined);
-
-        return () => {
-            websocketService.off('caro:game_start', handleGameStart);
-            websocketService.off('caro:update', handleGameUpdate);
-            websocketService.off('caro:waiting', handleWaiting);
-            websocketService.off('caro:error', handleError);
-            websocketService.off('caro:waiting_rematch', handleWaitingRematch);
-            websocketService.off('caro:rematch_requested', handleRematchRequested);
-            websocketService.off('caro:rematch_declined', handleRematchDeclined);
-
-            const currentState = gameStateRef.current;
-            if (currentState.roomId && !isRematchingRef.current) {
-                websocketService.emit('game:leave', { roomId: currentState.roomId });
-            }
-        };
-    }, [apiKey, saveGameForUser, updateGameState]);
-
-    const findMatch = () => {
-        const newMatchmakingId = generateId();
-        matchmakingIdRef.current = newMatchmakingId;
-        updateGameState({ status: 'waiting' });
-        websocketService.emit('caro:find_match', { matchmakingId: newMatchmakingId });
-    };
-
-    const leaveLobby = () => {
-        if (matchmakingIdRef.current) {
-            websocketService.emit('caro:leave', { matchmakingId: matchmakingIdRef.current });
-            matchmakingIdRef.current = null;
-        }
-        updateGameState({ status: 'lobby', roomId: null });
-    };
-
-    const makeMove = (index) => {
-        if (gameState.status === 'playing' && gameState.isMyTurn && !gameState.board[index]) {
-            websocketService.emit('caro:move', { index });
+    const handleTestBackClick = () => {
+        if (typeof onBack === 'function') {
+            alert('Thí nghiệm thành công! Prop "onBack" đã được truyền vào đúng.');
+            onBack(); // Thực thi hàm quay lại
+        } else {
+            alert('LỖI: Prop "onBack" KHÔNG phải là một hàm.');
         }
     };
-    
-    const requestRematch = () => {
-        isRematchingRef.current = true;
-        websocketService.emit('caro:request_rematch');
-    }
 
-    const leaveGame = () => {
-        isRematchingRef.current = false;
-        websocketService.emit('game:leave', { roomId: gameState.roomId });
-        updateGameState({ status: 'lobby', roomId: null, postGameStatus: 'none' });
-    };
-
-    return { gameState, findMatch, makeMove, requestRematch, leaveLobby, leaveGame };
+    return (
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#111827',
+            color: 'white',
+            padding: '50px',
+            fontSize: '24px',
+            textAlign: 'center',
+            fontFamily: 'sans-serif'
+        }}>
+            <h1 style={{color: '#60A5FA', fontSize: '48px'}}>Thí Nghiệm Cô Lập</h1>
+            <p style={{ marginTop: '20px', color: '#9CA3AF', lineHeight: '1.6' }}>
+                Nếu bạn thấy trang này và không có lỗi trong Console,
+                <br />
+                điều đó chứng minh logic trong `MainApp.js` của bạn là **HOÀN HẢO**.
+            </p>
+            <p style={{ marginTop: '20px', color: '#9CA3AF', lineHeight: '1.6' }}>
+                Vấn đề 100% nằm trong code cũ của `CaroPage.jsx` hoặc các file nó import (như `useCaroGameSocket.jsx`).
+            </p>
+            <button 
+                onClick={handleTestBackClick} 
+                style={{ 
+                    padding: '15px 30px', 
+                    marginTop: '40px', 
+                    background: 'linear-gradient(to right, #4F46E5, #EC4899)', 
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '18px',
+                    cursor: 'pointer'
+                }}
+            >
+                Bấm để Test nút "Quay lại"
+            </button>
+        </div>
+    );
 };
+
+export default CaroPage;
