@@ -86,14 +86,14 @@ export function connect(apiKey) {
 }
 
 export function disconnect() {
-    // Khi người dùng chủ động ngắt kết nối (logout), ngăn việc tự động kết nối lại
+
     if (reconnectInterval) {
         clearInterval(reconnectInterval);
         reconnectInterval = null;
     }
     if (socket) {
         console.log('[WebSocket] Disconnecting...');
-        socket.close(1000); // Gửi mã 1000 để báo đây là ngắt kết nối bình thường
+        socket.close(1000); 
         socket = null;
     }
 }

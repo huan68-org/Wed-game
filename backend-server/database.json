@@ -1,404 +1,247 @@
 {
-  "h2": {
+  "h": {
     "credentials": {
       "password": "1",
-      "apiKey": "b3987b3c-b894-4ff7-9c7a-fd7c07726ddb"
+      "apiKey": "14518996-35d0-4e4d-9be2-7277f225a1c1"
     },
     "profile": {
-      "createdAt": "2025-07-17T12:32:48.871Z"
+      "createdAt": "2025-07-22T10:32:37.243Z"
     },
     "history": [
       {
-        "id": "4adca391-29c1-4190-9192-30e70e302bca",
-        "date": "2025-07-17T13:07:29.484Z",
-        "gameName": "Xếp hình",
-        "imageSrc": "/uploads/puzzleImage-1752757615242-286853432.png",
-        "difficulty": "3x3",
-        "moves": 11,
-        "timeInSeconds": 31
+        "id": "76facce8-19e0-4b7b-9e1e-b03156aacc0d",
+        "date": "2025-07-22T12:19:49.902Z",
+        "gameName": "Bắn Tàu",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/battleship.jpg"
       },
       {
-        "id": "60dede10-8776-43a2-8269-a3952587e3d2",
-        "date": "2025-07-17T13:04:44.464Z",
-        "gameName": "Xếp hình",
-        "imageSrc": "/uploads/puzzleImage-1752757449718-830064653.png",
-        "difficulty": "3x3",
-        "moves": 13,
-        "timeInSeconds": 31
+        "id": "e45f88f2-d801-443a-8df2-5ba02ff95e63",
+        "date": "2025-07-22T12:19:29.326Z",
+        "gameName": "Bắn Tàu",
+        "difficulty": "Online vs test",
+        "result": "Thắng",
+        "imageSrc": "/img/battleship.jpg"
       },
       {
-        "id": "6f023b1f-fc6d-4041-8034-a9ad9d9ea6db",
-        "date": "2025-07-17T12:52:37.078Z",
+        "id": "be3b28de-21f9-4faa-87ca-42a121f26333",
+        "date": "2025-07-22T12:12:02.431Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "f2a4af37-2059-4403-b43b-f866af58186b",
+        "date": "2025-07-22T12:11:36.333Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "81019773-963a-4844-80d3-1e5e5fcd5dbf",
+        "date": "2025-07-22T12:10:16.761Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "2ea2850b-44bc-4ab8-824d-db85572089e8",
+        "date": "2025-07-22T12:05:25.066Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "517a8be3-1845-4e57-aeb8-2659c8308838",
+        "date": "2025-07-22T12:03:43.953Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "78165764-cbb6-4bc3-b3c7-1563c951fc6f",
+        "date": "2025-07-22T12:03:20.313Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "9bb377a7-93b5-41c3-bbfb-6742e4e3798d",
+        "date": "2025-07-22T11:49:44.190Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "12011fd8-e320-4a5a-b63d-9322a7d6a6b9",
+        "date": "2025-07-22T11:32:04.013Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "ebf558f2-fce2-4d13-82d3-ece568a4f761",
+        "date": "2025-07-22T11:18:49.278Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "6772cb4b-6198-4673-a833-fc206cc3d796",
+        "date": "2025-07-22T11:17:45.409Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "f1b83130-bbc3-4db3-b76d-d393a7d258ce",
+        "date": "2025-07-22T11:16:15.804Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs test",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      }
+    ],
+    "friends": [
+      {
+        "id": "5988bd9c-db4d-422b-88d8-d1fd39fb5a5a",
+        "username": "test",
+        "status": "friends",
+        "since": "2025-07-22T10:33:59.928Z"
+      }
+    ]
+  },
+  "test": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "12345047-f362-4696-8df8-0f1e678bec13"
+    },
+    "profile": {
+      "createdAt": "2025-07-22T10:33:25.572Z"
+    },
+    "history": [
+      {
+        "id": "ecba876d-984f-435b-a193-f6baabc448bd",
+        "date": "2025-07-22T12:19:49.899Z",
+        "gameName": "Bắn Tàu",
+        "difficulty": "Online vs h",
+        "result": "Thắng",
+        "imageSrc": "/img/battleship.jpg"
+      },
+      {
+        "id": "8d802532-da86-4c2e-84e6-bc2f10b39506",
+        "date": "2025-07-22T12:19:29.330Z",
+        "gameName": "Bắn Tàu",
+        "difficulty": "Online vs h",
+        "result": "Thua",
+        "imageSrc": "/img/battleship.jpg"
+      },
+      {
+        "id": "74a29cf5-3b65-4e33-8c94-b4430385faa9",
+        "date": "2025-07-22T12:12:02.435Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs h",
         "result": "Thua",
         "imageSrc": "/img/caro.jpg"
-      }
-    ],
-    "friends": [
+      },
       {
-        "username": "h",
-        "status": "friends",
-        "since": "2025-07-17T12:37:16.026Z"
-      }
-    ]
-  },
-  "h": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "68e019c5-89e8-46a3-b1a8-6b56d945ec0d"
-    },
-    "profile": {
-      "createdAt": "2025-07-17T12:36:46.507Z"
-    },
-    "history": [
-      {
-        "id": "3c72d9d3-a252-4543-a1bc-bebf94171548",
-        "date": "2025-07-17T12:52:37.075Z",
+        "id": "00b87ea1-83a0-4f8a-938b-ba5b6d2ea028",
+        "date": "2025-07-22T12:11:36.329Z",
         "gameName": "Cờ Caro",
-        "difficulty": "Online vs h2",
+        "difficulty": "Online vs h",
         "result": "Thắng",
         "imageSrc": "/img/caro.jpg"
-      }
-    ],
-    "friends": [
+      },
       {
-        "username": "h2",
-        "status": "friends",
-        "since": "2025-07-17T12:37:16.026Z"
-      }
-    ]
-  },
-  "conversations": {
-    "h_h2": {
-      "participants": [
-        "h2",
-        "h"
-      ],
-      "messages": [
-        {
-          "id": "c68e20e6-34ed-45bf-b0d2-e0405e1394db",
-          "sender": "h2",
-          "recipient": "h",
-          "message": "aloo",
-          "timestamp": "2025-07-17T12:37:24.273Z"
-        },
-        {
-          "id": "d76137b4-561a-4a04-aca4-d9d61bb3a0e9",
-          "sender": "h",
-          "recipient": "h2",
-          "message": "lô cái j mà lô",
-          "timestamp": "2025-07-17T12:37:41.895Z"
-        },
-        {
-          "id": "089c7ede-1ff3-44e5-b4e5-57a0f743cefb",
-          "sender": "h2",
-          "recipient": "h",
-          "message": "ơ hay",
-          "timestamp": "2025-07-17T12:37:57.095Z"
-        }
-      ]
-    }
-  },
-  "huan1122": {
-    "credentials": {
-      "password": "4",
-      "apiKey": "ca830a22-926f-4540-be54-9b34e0d79bcb"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T10:12:48.521Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "Huân0710": {
-    "credentials": {
-      "password": "1234",
-      "apiKey": "2b502584-668d-4a93-9fbc-7ca3bbf4e061"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T10:58:57.624Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "huânN": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "3977068d-f24d-459b-bb94-1386a87839b3"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T11:07:55.393Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "hhhhhh": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "dc64a910-33e7-40e7-8951-a913ce601e62"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T11:12:24.014Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "uchiha": {
-    "credentials": {
-      "password": "1234",
-      "apiKey": "097aa4d6-6af5-4c74-8977-a1033bb96915"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T11:27:25.109Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "hg": {
-    "credentials": {
-      "password": "234",
-      "apiKey": "702f4785-1a47-4d06-b355-b53d883c795b"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T11:50:48.139Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "quynh": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "ab89a5f5-cca1-401f-96e3-e8d80ac469fb"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T12:18:59.053Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "quynh1": {
-    "credentials": {
-      "password": "2",
-      "apiKey": "18737176-35af-4f81-a26a-495fc66c0b48"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T12:19:12.111Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "huanNguyen": {
-    "credentials": {
-      "password": "1234",
-      "apiKey": "8e9947cf-7ba6-423e-bb6a-5bfc2bbe3e58"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T12:23:01.557Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "HuHi": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "dfa90381-8769-4478-aac9-3b749396a96b"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T12:36:12.026Z"
-    },
-    "history": [
-      {
-        "id": "b71faa03-fc96-4ec9-826c-853ebcd84b1b",
-        "date": "2025-07-18T12:57:08.006Z",
+        "id": "bd26f5eb-cc52-4cd0-beba-d3561ce29b6f",
+        "date": "2025-07-22T12:10:16.765Z",
         "gameName": "Cờ Caro",
-        "difficulty": "Online vs anhyeuemlam",
+        "difficulty": "Online vs h",
         "result": "Thua",
         "imageSrc": "/img/caro.jpg"
-      }
-    ],
-    "friends": [
-      {
-        "username": "anhyeuemlam",
-        "status": "friends",
-        "since": "2025-07-18T13:52:44.759Z"
       },
       {
-        "username": "sasuke",
-        "status": "friends",
-        "since": "2025-07-18T14:52:45.812Z"
-      }
-    ]
-  },
-  "anhyeuemlam": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "f46ee798-71e7-4340-9d63-b36ddd08207e"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T12:56:32.566Z"
-    },
-    "history": [
-      {
-        "id": "eb558131-7937-42ed-b8c9-a4747101fc16",
-        "date": "2025-07-18T12:57:08.003Z",
+        "id": "6fa60a7e-b384-41a1-a2ef-16353cf4cccd",
+        "date": "2025-07-22T12:05:25.062Z",
         "gameName": "Cờ Caro",
-        "difficulty": "Online vs HuHi",
+        "difficulty": "Online vs h",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "dd92d319-bf7e-4812-9888-4ca510164e30",
+        "date": "2025-07-22T12:03:43.949Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "239d5009-b4a3-4195-b1f0-84e81640bf24",
+        "date": "2025-07-22T12:03:20.307Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "d56b7036-d7c5-4748-8520-1dd9de9de7b3",
+        "date": "2025-07-22T11:49:44.184Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "d35c7cf8-781b-471b-ab5d-1a3ac03e4711",
+        "date": "2025-07-22T11:32:04.021Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "09a3eed3-121e-46da-a35a-96b138e0a1bc",
+        "date": "2025-07-22T11:18:49.285Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thua",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "3e7591c4-2dbe-489b-a327-fe62ddcf6699",
+        "date": "2025-07-22T11:17:45.404Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
+        "result": "Thắng",
+        "imageSrc": "/img/caro.jpg"
+      },
+      {
+        "id": "370772a0-eabd-4884-ac6a-412c3e51a448",
+        "date": "2025-07-22T11:16:15.800Z",
+        "gameName": "Cờ Caro",
+        "difficulty": "Online vs h",
         "result": "Thắng",
         "imageSrc": "/img/caro.jpg"
       }
     ],
     "friends": [
       {
-        "username": "HuHi",
+        "id": "5988bd9c-db4d-422b-88d8-d1fd39fb5a5a",
+        "username": "h",
         "status": "friends",
-        "since": "2025-07-18T13:52:44.759Z"
-      }
-    ]
-  },
-  "sasuke": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "d4257549-0178-40b6-9043-9f206eba9d10"
-    },
-    "profile": {
-      "createdAt": "2025-07-18T13:53:33.865Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "username": "HuHi",
-        "status": "friends",
-        "since": "2025-07-18T14:52:45.812Z"
-      }
-    ]
-  },
-  "Cong Hun": {
-    "credentials": {
-      "password": "9",
-      "apiKey": "4c7ec145-955a-4df0-971e-d1487d8a0993"
-    },
-    "profile": {
-      "createdAt": "2025-07-19T13:57:12.274Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "id": "9b1ff000-0640-4917-8a12-86309b13aaa1",
-        "username": "ahihi",
-        "status": "friends",
-        "since": "2025-07-20T16:08:00.049Z"
-      },
-      {
-        "username": "hiho",
-        "status": "friends",
-        "since": "2025-07-20T07:51:19.126Z"
-      }
-    ]
-  },
-  "hiho": {
-    "credentials": {
-      "password": "8",
-      "apiKey": "533b160d-0642-433e-a640-497840903f35"
-    },
-    "profile": {
-      "createdAt": "2025-07-20T07:50:17.768Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "username": "Cong Hun",
-        "status": "friends",
-        "since": "2025-07-20T07:51:19.126Z"
-      }
-    ]
-  },
-  "ahihi": {
-    "credentials": {
-      "password": "4",
-      "apiKey": "91b2618d-1959-42ef-ab9b-2cd3a253f8cb"
-    },
-    "profile": {
-      "createdAt": "2025-07-20T14:33:22.772Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "id": "9b1ff000-0640-4917-8a12-86309b13aaa1",
-        "username": "Cong Hun",
-        "status": "friends",
-        "since": "2025-07-20T16:08:00.049Z"
-      }
-    ]
-  },
-  "Co be lo lem": {
-    "credentials": {
-      "password": "1",
-      "apiKey": "932accfa-8924-4180-985a-1c0861ba2ff8"
-    },
-    "profile": {
-      "createdAt": "2025-07-21T10:49:09.907Z"
-    },
-    "history": [],
-    "friends": []
-  },
-  "Hihulo": {
-    "credentials": {
-      "password": "2",
-      "apiKey": "e5e7e1ca-a673-486d-be00-fb6770a570a1"
-    },
-    "profile": {
-      "createdAt": "2025-07-21T11:06:23.625Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "id": "202b9f10-c23e-49dd-8c55-0ec99e23089c",
-        "username": "dracula",
-        "status": "friends",
-        "since": "2025-07-22T09:50:42.007Z"
-      },
-      {
-        "id": "4721fef8-16e7-4c33-97e5-113b76fe5a39",
-        "username": "co10conVo",
-        "status": "friends",
-        "since": "2025-07-21T11:10:29.337Z"
-      }
-    ]
-  },
-  "co10conVo": {
-    "credentials": {
-      "password": "23",
-      "apiKey": "3be7ce6c-d310-4535-b880-15b93cfb49f8"
-    },
-    "profile": {
-      "createdAt": "2025-07-21T11:09:37.882Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "id": "4721fef8-16e7-4c33-97e5-113b76fe5a39",
-        "username": "Hihulo",
-        "status": "friends",
-        "since": "2025-07-21T11:10:29.337Z"
-      }
-    ]
-  },
-  "dracula": {
-    "credentials": {
-      "password": "4",
-      "apiKey": "f780ec53-8d44-4f0e-b95d-ebc0909f5fe5"
-    },
-    "profile": {
-      "createdAt": "2025-07-22T09:50:12.312Z"
-    },
-    "history": [],
-    "friends": [
-      {
-        "id": "202b9f10-c23e-49dd-8c55-0ec99e23089c",
-        "username": "Hihulo",
-        "status": "friends",
-        "since": "2025-07-22T09:50:42.007Z"
+        "since": "2025-07-22T10:33:59.928Z"
       }
     ]
   }

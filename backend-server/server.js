@@ -10,7 +10,6 @@ const fs = require('fs/promises');
 const path = require('path');
 const multer = require('multer');
 
-// Import các module logic
 const { handleCaroEvents, caroGames, createCaroGame, resetGame: resetCaroGame } = require('./game-logic/caro.js');
 const { handleBattleshipEvents, battleshipGames, createBattleshipGame, resetGame: resetBattleshipGame } = require('./game-logic/battleship.js');
 const { handleDisconnect: originalDisconnectHandler } = require('./game-logic/disconnectHandler.js');
@@ -21,33 +20,27 @@ const { handleFriendRequest, handleFriendResponse, handleRemoveFriend } = requir
 const { handleDirectMessage, getChatHistory } = require('./game-logic/chatHandler.js');
 const { createHistorySavingHandler } = require('./game-logic/historySaver.js');
 
-// Bọc các hàm xử lý sự kiện game với logic lưu lịch sử
 const handleDisconnect = createHistorySavingHandler(originalDisconnectHandler);
 const handleLeaveGame = createHistorySavingHandler(originalLeaveHandler);
 
-// Registry để quản lý các loại game
 const gameRegistry = {
     caro: { create: createCaroGame, games: caroGames, handler: handleCaroEvents, reset: resetCaroGame, gameName: 'Cờ Caro', imageSrc: '/img/caro.jpg' },
     battleship: { create: createBattleshipGame, games: battleshipGames, handler: handleBattleshipEvents, reset: resetBattleshipGame, gameName: 'Bắn Tàu', imageSrc: '/img/battleship.jpg' }
 };
 
-// --- QUẢN LÝ DATABASE (JSON file) ---
 const DB_FILE = path.join(__dirname, 'database.json');
 async function readDatabase() { try { await fs.access(DB_FILE); const data = await fs.readFile(DB_FILE, 'utf-8'); return JSON.parse(data); } catch (error) { return {}; } }
 async function writeDatabase(data) { await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf-8'); }
 
-// --- KHỞI TẠO SERVER ---
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ noServer: true });
 
-// --- MIDDLEWARES ---
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Cấu hình Multer để upload file
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadPath = path.join(__dirname, 'public', 'uploads');
@@ -60,10 +53,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Map để lưu trữ các kết nối WebSocket đang hoạt động
 const clients = new Map();
 
-// Middleware xác thực người dùng qua API Key
 async function authenticateUser(req, res, next) {
     const apiKey = req.headers['x-api-key'];
     if (!apiKey) return res.status(401).json({ message: 'API Key is required' });
@@ -85,8 +76,6 @@ function normalizeToString(value) {
     if (value === null || typeof value === 'undefined') { return ''; }
     return String(value).trim();
 }
-
-// --- CÁC ENDPOINT API HTTP ---
 
 app.post('/api/register', async (req, res) => {
     const username = normalizeToString(req.body.username);
@@ -129,7 +118,6 @@ app.get('/api/me', authenticateUser, (req, res) => {
     res.status(200).json({ username: req.user.username });
 });
 
-// Các endpoint lịch sử
 app.get('/api/history', authenticateUser, (req, res) => res.status(200).json(req.user.history || []));
 app.post('/api/history', authenticateUser, async (req, res) => {
     const { body: gameData, user: { username } } = req;
@@ -165,8 +153,6 @@ app.delete('/api/history', authenticateUser, async (req, res) => {
     }
 });
 
-
-// Tìm kiếm người dùng
 app.get('/api/users/search', authenticateUser, async (req, res) => {
     const { q } = req.query;
     if (!q || typeof q !== 'string' || q.trim() === '') return res.status(400).json({ message: 'Cần có từ khóa tìm kiếm hợp lệ.' });
@@ -181,7 +167,6 @@ app.get('/api/users/search', authenticateUser, async (req, res) => {
     }
 });
 
-// Upload ảnh
 app.post('/api/upload/puzzle-image', upload.single('puzzleImage'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'Không có file nào được tải lên.' });
@@ -193,11 +178,8 @@ app.post('/api/upload/puzzle-image', upload.single('puzzleImage'), (req, res) =>
     });
 });
 
-// Context cho các hàm xử lý API
 const apiHandlerContext = { readDatabase, writeDatabase, clients };
 
-// === CÁC ENDPOINT BẠN BÈ ===
-// THAY ĐỔI QUAN TRỌNG NHẤT: Trả về dữ liệu có cấu trúc để Frontend dễ xử lý
 app.get('/api/friends', authenticateUser, async (req, res) => {
     try {
         const allRelations = req.user.friends || [];
@@ -207,7 +189,6 @@ app.get('/api/friends', authenticateUser, async (req, res) => {
             sentRequests: []
         };
 
-        // Phân loại các mối quan hệ vào đúng mảng
         for (const relation of allRelations) {
             switch (relation.status) {
                 case 'friends':
@@ -232,10 +213,8 @@ app.post('/api/friends/request', authenticateUser, (req, res) => handleFriendReq
 app.post('/api/friends/respond', authenticateUser, (req, res) => handleFriendResponse(req, res, apiHandlerContext));
 app.delete('/api/friends/:friendUsername', authenticateUser, (req, res) => handleRemoveFriend(req, res, apiHandlerContext));
 
-// Các endpoint chat
 app.get('/api/chat/:friendUsername', authenticateUser, (req, res) => getChatHistory(req, res, apiHandlerContext));
 
-// --- XỬ LÝ NÂNG CẤP KẾT NỐI LÊN WEBSOCKET ---
 server.on('upgrade', async (request, socket, head) => {
     const { query } = url.parse(request.url, true);
     const apiKey = query.apiKey;
@@ -255,13 +234,11 @@ server.on('upgrade', async (request, socket, head) => {
     }
 });
 
-// --- LOGIC KHI CÓ MỘT KẾT NỐI WEBSOCKET MỚI ---
 wss.on('connection', async (ws, request, username) => {
     ws.username = username;
     clients.set(username, ws);
     console.log(`[CONNECTION] Client ${username} connected. Total clients: ${clients.size}`);
 
-    // Gửi thông báo cho bạn bè của người này rằng họ đã online
     try {
         const database = await readDatabase();
         const userFriends = (database[username]?.friends || []).filter(f => f.status === 'friends').map(f => f.username);
@@ -269,13 +246,12 @@ wss.on('connection', async (ws, request, username) => {
         const onlineFriendsUsernames = [];
         userFriends.forEach(friendUsername => {
             const friendClient = clients.get(friendUsername);
-            if (friendClient?.readyState === 1) { // 1 === WebSocket.OPEN
+            if (friendClient?.readyState === 1) {
                 friendClient.send(JSON.stringify({ type: 'friend:online', payload: { username } }));
                 onlineFriendsUsernames.push(friendUsername);
             }
         });
 
-        // Gửi lại danh sách những người bạn đang online cho chính người vừa kết nối
         ws.send(JSON.stringify({ type: 'friend:list_online', payload: onlineFriendsUsernames }));
         
     } catch (error) {
@@ -285,7 +261,9 @@ wss.on('connection', async (ws, request, username) => {
     ws.on('message', (message) => {
         try {
             const { type, payload } = JSON.parse(message);
-            if (ws.roomId) { // Nếu client đang ở trong một phòng game
+            const context = { clients, gameRegistry, readDatabase, writeDatabase };
+
+            if (ws.roomId) {
                 const gameType = ws.roomId.split('_')[0];
                 const gameModule = gameRegistry[gameType];
                 if (!gameModule || !gameModule.games[ws.roomId]) {
@@ -307,17 +285,17 @@ wss.on('connection', async (ws, request, username) => {
                 }
 
                 if (isFinished) {
-                    handlePostGameAction(ws, type, payload, { gameRegistry, clients });
+                    handlePostGameAction(ws, type, payload, context);
                 } else {
                     if (type === 'game:leave') {
-                        handleLeaveGame(ws, payload, { gameRegistry, clients });
+                        handleLeaveGame(ws, payload, context);
                     } else if (gameModule.handler) {
-                        gameModule.handler(ws, type, payload, { clients, gameRegistry });
+                        gameModule.handler(ws, type, payload, context);
                     }
                 }
-            } else { // Nếu client ở ngoài sảnh chờ (lobby)
+            } else {
                 if (type === 'chat:dm') {
-                    handleDirectMessage(ws, payload, { clients, readDatabase, writeDatabase });
+                    handleDirectMessage(ws, payload, context);
                 }
                 else if (type.endsWith(':find_match') || type.endsWith(':leave_lobby')) {
                     const result = handleLobbyEvent(ws, type, payload, { clients });
@@ -327,11 +305,7 @@ wss.on('connection', async (ws, request, username) => {
                             gameRegistry[gameType].create(result.player1, result.player2);
                         }
                     }
-                } else if (type === 'game:leave') {
-                    handleLeaveGame(ws, payload, { gameRegistry, clients });
                 }
-                 // Bạn có thể thêm các xử lý cho các event khác ở lobby tại đây
-                 // ví dụ: game:invite_accepted, game:invite_declined
             }
         } catch (error) {
             console.error('[WebSocket] Error processing message:', error);
@@ -340,6 +314,8 @@ wss.on('connection', async (ws, request, username) => {
 
     ws.on('close', () => {
         const usernameToDisconnect = ws.username;
+        if (!usernameToDisconnect) return;
+
         clients.delete(usernameToDisconnect);
         console.log(`[DISCONNECT] Client ${usernameToDisconnect} disconnected. Total clients: ${clients.size}`);
         
