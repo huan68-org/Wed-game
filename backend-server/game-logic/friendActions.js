@@ -1,42 +1,51 @@
+// backend-server/game-logic/friendActions.js (Phiên bản cuối cùng, sửa lỗi gửi nhầm)
+
 const { v4: uuidv4 } = require('uuid');
 
 async function handleFriendRequest(req, res, { readDatabase, writeDatabase, clients }) {
     try {
         const { user: { username: senderUsername }, body: { targetUsername } } = req;
         
-        console.log(`--- [Friend Request] Received request from '${senderUsername}' to '${targetUsername}' ---`);
+        console.log(`\n--- [ACTION] Bắt đầu handleFriendRequest ---`);
+        console.log(`[ACTION] Người gửi: '${senderUsername}', Người nhận: '${targetUsername}'`);
 
-        if (!targetUsername) {
-            return res.status(400).json({ message: 'Tên người nhận là bắt buộc.' });
-        }
-        if (senderUsername === targetUsername) {
-            return res.status(400).json({ message: 'Bạn không thể tự kết bạn với chính mình.' });
+        if (!targetUsername || senderUsername === targetUsername) {
+            return res.status(400).json({ message: 'Yêu cầu không hợp lệ.' });
         }
         
         const database = await readDatabase();
         if (!database[targetUsername]) {
+            console.log(`[ACTION] LỖI: Người dùng '${targetUsername}' không tồn tại trong database.`);
             return res.status(404).json({ message: 'Người dùng không tồn tại.' });
         }
         
         const sender = database[senderUsername];
-        const target = database[targetUsername];
         if (!sender.friends) sender.friends = [];
-        if (!target.friends) target.friends = [];
-        
         if (sender.friends.some(f => f.username === targetUsername)) {
+            console.log(`[ACTION] LỖI: Mối quan hệ giữa '${senderUsername}' và '${targetUsername}' đã tồn tại.`);
             return res.status(400).json({ message: 'Đã gửi lời mời hoặc đã là bạn bè.' });
         }
         
         const timestamp = new Date().toISOString();
-        sender.friends.unshift({ username: targetUsername, status: 'pending_sent', since: timestamp });
-        target.friends.unshift({ username: senderUsername, status: 'pending_received', since: timestamp });
+        const requestId = uuidv4();
+
+        sender.friends.unshift({ id: requestId, username: targetUsername, status: 'pending_sent', since: timestamp });
+        const target = database[targetUsername];
+        if (!target.friends) target.friends = [];
+        target.friends.unshift({ id: requestId, username: senderUsername, status: 'pending_received', since: timestamp });
         
         await writeDatabase(database);
-        console.log(`[Friend Request] Database updated successfully.`);
+        console.log(`[ACTION] Database đã cập nhật.`);
         
+        // --- PHẦN SỬA LỖI QUAN TRỌNG NHẤT ---
+        console.log(`[ACTION] Bắt đầu tìm kiếm WebSocket của người nhận '${targetUsername}'...`);
+        console.log(`[ACTION] Danh sách client đang online: [${Array.from(clients.keys()).join(', ')}]`);
+        
+        // Lấy đúng client của NGƯỜI NHẬN
         const targetClient = clients.get(targetUsername);
+        
         if (targetClient && targetClient.readyState === 1) { // 1 === WebSocket.OPEN
-            console.log(`[Friend Request] Target client '${targetUsername}' FOUND and is online. Sending notification...`);
+            console.log(`%c[ACTION] >>> SUCCESS: Đã tìm thấy client '${targetUsername}' đang online. Sẽ gửi thông báo.`, 'color: green');
             
             const notificationPayload = {
                 id: uuidv4(),
@@ -46,21 +55,27 @@ async function handleFriendRequest(req, res, { readDatabase, writeDatabase, clie
                 timestamp: timestamp
             };
 
-            targetClient.send(JSON.stringify({ 
-                type: 'notification:new', 
-                payload: notificationPayload 
-            }));
+            const notificationMessage = JSON.stringify({ type: 'notification:new', payload: notificationPayload });
+            const friendUpdateMessage = JSON.stringify({ type: 'friend:new_request' });
+
+            // Gửi đến đúng client của NGƯỜI NHẬN
+            targetClient.send(notificationMessage);
+            targetClient.send(friendUpdateMessage);
+
+            console.log(`[ACTION] Đã gửi sự kiện 'notification:new' và 'friend:new_request' đến '${targetUsername}'.`);
         } else {
-            console.log(`[Friend Request] Target client '${targetUsername}' NOT found or is not online. No WebSocket notification sent.`);
+            const clientState = targetClient ? `readyState = ${targetClient.readyState}` : 'không tồn tại trong map';
+            console.log(`%c[ACTION] >>> FAILED: Không thể gửi thông báo. Client '${targetUsername}' ${clientState}.`, 'color: yellow');
         }
         
         res.status(200).json({ message:'Đã gửi lời mời kết bạn.' });
     } catch (error) {
-        console.error("Error in handleFriendRequest:", error);
+        console.error("Lỗi nghiêm trọng trong handleFriendRequest:", error);
         res.status(500).json({ message: "Lỗi server khi xử lý yêu cầu kết bạn." });
     }
 }
 
+// ... các hàm handleFriendResponse và handleRemoveFriend giữ nguyên ...
 async function handleFriendResponse(req, res, { readDatabase, writeDatabase, clients }) {
     const { user: { username: responderUsername }, body: { requesterUsername, action } } = req;
     if (!requesterUsername || !['accept', 'decline'].includes(action)) {
@@ -70,22 +85,17 @@ async function handleFriendResponse(req, res, { readDatabase, writeDatabase, cli
     const database = await readDatabase();
     const responder = database[responderUsername];
     const requester = database[requesterUsername];
-    if (!requester) {
-        return res.status(404).json({ message: 'Người gửi yêu cầu không tồn tại.' });
-    }
+    if (!requester) return res.status(404).json({ message: 'Người gửi yêu cầu không tồn tại.' });
 
     const requestInResponder = responder.friends.find(f => f.username === requesterUsername && f.status === 'pending_received');
-    if (!requestInResponder) {
-        return res.status(404).json({ message: 'Không tìm thấy lời mời kết bạn.' });
-    }
+    if (!requestInResponder) return res.status(404).json({ message: 'Không tìm thấy lời mời kết bạn.' });
+
+    const requestInRequester = requester.friends.find(f => f.username === responderUsername && f.status === 'pending_sent');
 
     if (action === 'accept') {
-        const requestInRequester = requester.friends.find(f => f.username === responderUsername && f.status === 'pending_sent');
         const timestamp = new Date().toISOString();
-        
         requestInResponder.status = 'friends';
         requestInResponder.since = timestamp;
-        
         if (requestInRequester) { 
             requestInRequester.status = 'friends'; 
             requestInRequester.since = timestamp; 
@@ -94,27 +104,22 @@ async function handleFriendResponse(req, res, { readDatabase, writeDatabase, cli
         const requesterClient = clients.get(requesterUsername);
         const responderClient = clients.get(responderUsername);
 
-        if (requesterClient && requesterClient.readyState === 1) {
-            requesterClient.send(JSON.stringify({ type: 'friend:request_accepted', payload: { by: responderUsername, since: timestamp } }));
-            // Chỉ gửi trạng thái online nếu người kia cũng đang online
-            if (responderClient && responderClient.readyState === 1) {
-                requesterClient.send(JSON.stringify({ type: 'friend:online', payload: { username: responderUsername }}));
-            }
+        // Thông báo cho cả hai client cần tải lại dữ liệu bạn bè
+        if (requesterClient?.readyState === 1) {
+             requesterClient.send(JSON.stringify({ type: 'friend:request_accepted', payload: { username: responderUsername } }));
         }
-
-        // Gửi trạng thái online ngược lại
-        if (responderClient && requesterClient && requesterClient.readyState === 1) {
-            responderClient.send(JSON.stringify({ type: 'friend:online', payload: { username: requesterUsername }}));
+        if (responderClient?.readyState === 1) {
+            responderClient.send(JSON.stringify({ type: 'friend:request_accepted', payload: { username: requesterUsername } }));
         }
         
         res.status(200).json({ message: `Bạn và ${requesterUsername} đã trở thành bạn bè.` });
     } else { // action === 'decline'
         responder.friends = responder.friends.filter(f => f.username !== requesterUsername);
-        requester.friends = requester.friends.filter(f => f.username !== responderUsername);
+        if (requestInRequester) requester.friends = requester.friends.filter(f => f.username !== responderUsername);
         
         const requesterClient = clients.get(requesterUsername);
-        if (requesterClient && requesterClient.readyState === 1) {
-            requesterClient.send(JSON.stringify({ type: 'friend:request_declined', payload: { by: responderUsername } }));
+        if (requesterClient?.readyState === 1) {
+            requesterClient.send(JSON.stringify({ type: 'friend:request_declined', payload: { username: responderUsername } }));
         }
         res.status(200).json({ message: `Bạn đã từ chối lời mời kết bạn từ ${requesterUsername}.` });
     }
@@ -125,31 +130,21 @@ async function handleFriendResponse(req, res, { readDatabase, writeDatabase, cli
 async function handleRemoveFriend(req, res, { readDatabase, writeDatabase, clients }) {
     const { username: selfUsername } = req.user;
     const { friendUsername } = req.params;
-
-    if (!friendUsername) {
-        return res.status(400).json({ message: 'Tên bạn bè là bắt buộc.' });
-    }
+    if (!friendUsername) return res.status(400).json({ message: 'Tên bạn bè là bắt buộc.' });
 
     const database = await readDatabase();
     const self = database[selfUsername];
     const friend = database[friendUsername];
+    if (!friend) return res.status(404).json({ message: 'Không tìm thấy người dùng này.' });
 
-    if (!friend) {
-        return res.status(404).json({ message: 'Không tìm thấy người dùng này.' });
-    }
-
-    if (self && self.friends) {
-        self.friends = self.friends.filter(f => f.username !== friendUsername);
-    }
-    if (friend && friend.friends) {
-        friend.friends = friend.friends.filter(f => f.username !== selfUsername);
-    }
+    if (self?.friends) self.friends = self.friends.filter(f => f.username !== friendUsername);
+    if (friend?.friends) friend.friends = friend.friends.filter(f => f.username !== selfUsername);
 
     await writeDatabase(database);
 
     const friendClient = clients.get(friendUsername);
-    if (friendClient && friendClient.readyState === 1) {
-        friendClient.send(JSON.stringify({ type: 'friend:removed', payload: { by: selfUsername }}));
+    if (friendClient?.readyState === 1) {
+        friendClient.send(JSON.stringify({ type: 'friend:removed', payload: { username: selfUsername }}));
     }
 
     res.status(200).json({ message: `Đã xóa ${friendUsername} khỏi danh sách bạn bè.` });

@@ -1,36 +1,52 @@
+// src/context/FriendsContext.jsx (Phiên bản Hoàn chỉnh)
+
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as api from '/src/services/api.js';
-import * as websocketService from '/src/services/websocketService.js';
+import * as api from '../services/api';
+import * as websocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
+import { useNotifications } from './NotificationContext';
 
 const FriendsContext = createContext(null);
 
-// Dòng 'export const useFriends' bị trùng lặp đã được xóa khỏi đây.
+export const useFriends = () => {
+    const context = useContext(FriendsContext);
+    if (!context) {
+        throw new Error('useFriends must be used within a FriendsProvider');
+    }
+    return context;
+};
 
 export const FriendsProvider = ({ children }) => {
     const { apiKey, isAuthenticated } = useAuth();
+    const { addNotification } = useNotifications();
+
     const [friends, setFriends] = useState([]);
     const [requests, setRequests] = useState([]);
     const [onlineFriends, setOnlineFriends] = useState(new Set());
+    const [isLoading, setIsLoading] = useState(true);
 
     const fetchAllFriendData = useCallback(async () => {
         if (!isAuthenticated || !apiKey) {
             setFriends([]);
             setRequests([]);
-            setOnlineFriends(new Set());
+            setIsLoading(false);
             return;
         }
 
+        setIsLoading(true);
         try {
-            const allRelations = await api.getFriends(apiKey);
-            setFriends(allRelations.filter(r => r.status === 'friends'));
-            setRequests(allRelations.filter(r => r.status !== 'friends'));
+            const data = await api.getFriends(apiKey);
+            setFriends(data.friends || []);
+            const received = (data.receivedRequests || []).map(r => ({ ...r, status: 'pending_received' }));
+            const sent = (data.sentRequests || []).map(r => ({ ...r, status: 'pending_sent' }));
+            setRequests([...received, ...sent]);
         } catch (error) {
             console.error("Lỗi khi tải danh sách bạn bè:", error);
-            setFriends([]);
-            setRequests([]);
+            addNotification({ type: 'error', title: 'Lỗi', message: 'Không thể tải dữ liệu bạn bè.' });
+        } finally {
+            setIsLoading(false);
         }
-    }, [apiKey, isAuthenticated]);
+    }, [apiKey, isAuthenticated, addNotification]);
 
     useEffect(() => {
         fetchAllFriendData();
@@ -39,70 +55,65 @@ export const FriendsProvider = ({ children }) => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        const handleFriendOnline = ({ username }) => setOnlineFriends(prev => new Set(prev).add(username));
-        const handleFriendOffline = ({ username }) => {
+        const handleFriendChange = () => fetchAllFriendData();
+
+        const handleFriendOnline = (payload) => setOnlineFriends(prev => new Set(prev).add(payload.username));
+        const handleFriendOffline = (payload) => {
             setOnlineFriends(prev => {
                 const newSet = new Set(prev);
-                newSet.delete(username);
+                newSet.delete(payload.username);
                 return newSet;
             });
         };
         const handleOnlineList = (onlineUsernames) => setOnlineFriends(new Set(onlineUsernames));
 
-        const handleFriendChange = () => {
-            console.log("[FriendsContext] Friend data changed via direct event, refetching...");
-            fetchAllFriendData();
-        };
-
-        const handleNewNotification = (payload) => {
-            if (payload && payload.type === 'friend_request') {
-                console.log("[FriendsContext] Received a friend request notification, refetching friends list...");
-                fetchAllFriendData();
-            }
-        };
-
-        websocketService.on('friend:online', handleFriendOnline);
-        websocketService.on('friend:offline', handleFriendOffline);
-        websocketService.on('friend:list_online', handleOnlineList);
+        websocketService.on('friend:new_request', handleFriendChange);
         websocketService.on('friend:request_accepted', handleFriendChange);
         websocketService.on('friend:request_declined', handleFriendChange);
         websocketService.on('friend:removed', handleFriendChange);
-        websocketService.on('notification:new', handleNewNotification);
+        websocketService.on('friend:online', handleFriendOnline);
+        websocketService.on('friend:offline', handleFriendOffline);
+        websocketService.on('friend:list_online', handleOnlineList);
 
         return () => {
-            websocketService.off('friend:online', handleFriendOnline);
-            websocketService.off('friend:offline', handleFriendOffline);
-            websocketService.off('friend:list_online', handleOnlineList);
+            websocketService.off('friend:new_request', handleFriendChange);
             websocketService.off('friend:request_accepted', handleFriendChange);
             websocketService.off('friend:request_declined', handleFriendChange);
             websocketService.off('friend:removed', handleFriendChange);
-            websocketService.off('notification:new', handleNewNotification);
+            websocketService.off('friend:online', handleFriendOnline);
+            websocketService.off('friend:offline', handleFriendOffline);
+            websocketService.off('friend:list_online', handleOnlineList);
         };
     }, [isAuthenticated, fetchAllFriendData]);
 
     const sendFriendRequest = async (targetUsername) => {
-        const res = await api.sendFriendRequest(apiKey, targetUsername);
-        await fetchAllFriendData();
-        return res;
+        try {
+            const res = await api.sendFriendRequest(apiKey, targetUsername);
+            addNotification({ type: 'success', title: 'Thành công', message: res.message });
+            fetchAllFriendData();
+        } catch (error) {
+            addNotification({ type: 'error', title: 'Thất bại', message: error.message });
+        }
     };
 
     const respondToFriendRequest = async (requesterUsername, action) => {
-        const res = await api.respondToFriendRequest(apiKey, requesterUsername, action);
-        await fetchAllFriendData();
-        return res;
+        try {
+            const res = await api.respondToFriendRequest(apiKey, requesterUsername, action);
+            addNotification({ type: 'info', title: 'Thông báo', message: res.message });
+            fetchAllFriendData();
+        } catch (error) {
+            addNotification({ type: 'error', title: 'Lỗi', message: error.message });
+        }
     };
 
     const removeFriend = async (friendUsername) => {
-        if (!window.confirm(`Bạn có chắc muốn xóa ${friendUsername} khỏi danh sách bạn bè không?`)) {
-            return;
-        }
+        if (!window.confirm(`Bạn có chắc muốn xóa ${friendUsername} khỏi danh sách bạn bè không?`)) return;
         try {
             const res = await api.removeFriend(apiKey, friendUsername);
-            await fetchAllFriendData();
-            alert(res.message);
+            addNotification({ type: 'info', title: 'Thông báo', message: res.message });
+            fetchAllFriendData();
         } catch (error) {
-            console.error("Lỗi khi xóa bạn:", error);
-            alert(`Lỗi: ${error.message}`);
+            addNotification({ type: 'error', title: 'Lỗi', message: error.message });
         }
     };
     
@@ -110,6 +121,7 @@ export const FriendsProvider = ({ children }) => {
         friends,
         requests,
         onlineFriends,
+        isLoading,
         sendFriendRequest,
         respondToFriendRequest,
         removeFriend,
@@ -120,13 +132,4 @@ export const FriendsProvider = ({ children }) => {
             {children}
         </FriendsContext.Provider>
     );
-};
-
-// Đây là định nghĩa đúng và duy nhất của hook useFriends
-export const useFriends = () => {
-    const context = useContext(FriendsContext);
-    if (!context) {
-        throw new Error('useFriends phải được sử dụng bên trong FriendsProvider');
-    }
-    return context;
 };

@@ -272,5 +272,134 @@
         "since": "2025-07-18T14:52:45.812Z"
       }
     ]
+  },
+  "Cong Hun": {
+    "credentials": {
+      "password": "9",
+      "apiKey": "4c7ec145-955a-4df0-971e-d1487d8a0993"
+    },
+    "profile": {
+      "createdAt": "2025-07-19T13:57:12.274Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "id": "9b1ff000-0640-4917-8a12-86309b13aaa1",
+        "username": "ahihi",
+        "status": "friends",
+        "since": "2025-07-20T16:08:00.049Z"
+      },
+      {
+        "username": "hiho",
+        "status": "friends",
+        "since": "2025-07-20T07:51:19.126Z"
+      }
+    ]
+  },
+  "hiho": {
+    "credentials": {
+      "password": "8",
+      "apiKey": "533b160d-0642-433e-a640-497840903f35"
+    },
+    "profile": {
+      "createdAt": "2025-07-20T07:50:17.768Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "username": "Cong Hun",
+        "status": "friends",
+        "since": "2025-07-20T07:51:19.126Z"
+      }
+    ]
+  },
+  "ahihi": {
+    "credentials": {
+      "password": "4",
+      "apiKey": "91b2618d-1959-42ef-ab9b-2cd3a253f8cb"
+    },
+    "profile": {
+      "createdAt": "2025-07-20T14:33:22.772Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "id": "9b1ff000-0640-4917-8a12-86309b13aaa1",
+        "username": "Cong Hun",
+        "status": "friends",
+        "since": "2025-07-20T16:08:00.049Z"
+      }
+    ]
+  },
+  "Co be lo lem": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "932accfa-8924-4180-985a-1c0861ba2ff8"
+    },
+    "profile": {
+      "createdAt": "2025-07-21T10:49:09.907Z"
+    },
+    "history": [],
+    "friends": []
+  },
+  "Hihulo": {
+    "credentials": {
+      "password": "2",
+      "apiKey": "e5e7e1ca-a673-486d-be00-fb6770a570a1"
+    },
+    "profile": {
+      "createdAt": "2025-07-21T11:06:23.625Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "id": "202b9f10-c23e-49dd-8c55-0ec99e23089c",
+        "username": "dracula",
+        "status": "friends",
+        "since": "2025-07-22T09:50:42.007Z"
+      },
+      {
+        "id": "4721fef8-16e7-4c33-97e5-113b76fe5a39",
+        "username": "co10conVo",
+        "status": "friends",
+        "since": "2025-07-21T11:10:29.337Z"
+      }
+    ]
+  },
+  "co10conVo": {
+    "credentials": {
+      "password": "23",
+      "apiKey": "3be7ce6c-d310-4535-b880-15b93cfb49f8"
+    },
+    "profile": {
+      "createdAt": "2025-07-21T11:09:37.882Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "id": "4721fef8-16e7-4c33-97e5-113b76fe5a39",
+        "username": "Hihulo",
+        "status": "friends",
+        "since": "2025-07-21T11:10:29.337Z"
+      }
+    ]
+  },
+  "dracula": {
+    "credentials": {
+      "password": "4",
+      "apiKey": "f780ec53-8d44-4f0e-b95d-ebc0909f5fe5"
+    },
+    "profile": {
+      "createdAt": "2025-07-22T09:50:12.312Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "id": "202b9f10-c23e-49dd-8c55-0ec99e23089c",
+        "username": "Hihulo",
+        "status": "friends",
+        "since": "2025-07-22T09:50:42.007Z"
+      }
+    ]
   }
 }

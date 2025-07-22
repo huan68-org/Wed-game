@@ -1,8 +1,11 @@
+// src/services/websocketService.js (Phiên bản chống lặp)
+
 import EventEmitter from 'eventemitter3';
 
 const WEBSOCKET_URL = 'ws://localhost:8080';
 const emitter = new EventEmitter();
 let socket = null;
+let reconnectInterval = null;
 
 const WebSocketState = {
     CONNECTING: 0,
@@ -11,7 +14,19 @@ const WebSocketState = {
     CLOSED: 3,
 };
 
+function tryReconnect(apiKey) {
+    // Nếu đã có lịch hẹn kết nối lại, không làm gì cả
+    if (reconnectInterval) return; 
+    
+    console.log('[WebSocket] Will try to reconnect in 5 seconds...');
+    reconnectInterval = setInterval(() => {
+        console.log('[WebSocket] Reconnecting...');
+        connect(apiKey); // Thử kết nối lại
+    }, 5000);
+}
+
 export function connect(apiKey) {
+    // --- SỬA LỖI QUAN TRỌNG: Ngăn chặn kết nối lại liên tục ---
     if (socket && socket.readyState !== WebSocketState.CLOSED) {
         console.warn('[WebSocket] Connection attempt ignored, socket is already open or connecting.');
         return;
@@ -21,12 +36,23 @@ export function connect(apiKey) {
         console.error('[WebSocket] API Key is required to connect.');
         return;
     }
+    
+    // Nếu có lịch hẹn cũ, xóa nó đi trước khi tạo kết nối mới
+    if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+        reconnectInterval = null;
+    }
 
     console.log('[WebSocket] Attempting to connect...');
     socket = new WebSocket(`${WEBSOCKET_URL}?apiKey=${apiKey}`);
 
     socket.onopen = () => {
         console.log('%c[WebSocket] Connection established.', 'color: green; font-weight: bold;');
+        // Nếu kết nối thành công, xóa mọi lịch hẹn kết nối lại
+        if (reconnectInterval) {
+            clearInterval(reconnectInterval);
+            reconnectInterval = null;
+        }
         emitter.emit('connect');
     };
 
@@ -34,10 +60,7 @@ export function connect(apiKey) {
         try {
             const { type, payload } = JSON.parse(event.data);
             if (type) {
-                // --- LOG GỠ LỖI ---
-                // Dòng này sẽ in ra mọi sự kiện nhận được từ server trong console của trình duyệt.
-                console.log(`[WebSocket] Received event: '${type}' with payload:`, payload);
-                
+                console.log(`%c[WebSocket] << RECV: '${type}'`, 'color: #8855ff;', payload);
                 emitter.emit(type, payload);
             }
         } catch (error) {
@@ -49,24 +72,37 @@ export function connect(apiKey) {
         console.log(`%c[WebSocket] Connection closed. Code: ${event.code}`, 'color: red; font-weight: bold;');
         emitter.emit('disconnect');
         socket = null;
+        // Chỉ tự động kết nối lại nếu kết nối bị ngắt bất thường
+        if (event.code !== 1000 && apiKey) { // 1000 là mã đóng kết nối bình thường
+            tryReconnect(apiKey);
+        }
     };
 
     socket.onerror = (error) => {
         console.error('[WebSocket] Error:', error);
         emitter.emit('error', error);
+        socket?.close(); // Buộc đóng kết nối để kích hoạt onclose và logic reconnect
     };
 }
 
 export function disconnect() {
+    // Khi người dùng chủ động ngắt kết nối (logout), ngăn việc tự động kết nối lại
+    if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+        reconnectInterval = null;
+    }
     if (socket) {
         console.log('[WebSocket] Disconnecting...');
-        socket.close();
+        socket.close(1000); // Gửi mã 1000 để báo đây là ngắt kết nối bình thường
+        socket = null;
     }
 }
 
 export function send(eventName, data) {
     if (socket && socket.readyState === WebSocketState.OPEN) {
-        socket.send(JSON.stringify({ type: eventName, payload: data }));
+        const message = JSON.stringify({ type: eventName, payload: data });
+        console.log(`%c[WebSocket] >> SEND: '${eventName}'`, 'color: #00aaff;', data);
+        socket.send(message);
     } else {
         console.warn(`[WebSocket] Cannot send message, socket is not open. Event: ${eventName}`);
     }
@@ -74,5 +110,3 @@ export function send(eventName, data) {
 
 export const on = (eventName, callback) => emitter.on(eventName, callback);
 export const off = (eventName, callback) => emitter.off(eventName, callback);
-
-export { send as emit };

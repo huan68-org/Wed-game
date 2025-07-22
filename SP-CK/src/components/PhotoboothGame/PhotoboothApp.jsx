@@ -356,6 +356,9 @@ const PhotoBoothApp = () => {
     localStorage.setItem('photoboothSettings', JSON.stringify(settings));
   };
 
+  // =========================================================
+  // === HÀM ĐÃ SỬA: handleDownloadAndSave ===
+  // =========================================================
   const handleDownloadAndSave = async () => {
     const node = photostripRef.current;
     if (!node) return;
@@ -364,90 +367,118 @@ const PhotoBoothApp = () => {
       // Create canvas for high-quality export
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      canvas.width = 1200;
-      canvas.height = layoutStyle === 'horizontal' ? 600 : layoutStyle === 'grid' ? 1200 : 1600;
-      
+      const exportQualityMultiplier = 3; 
+      canvas.width = (layoutStyle === 'horizontal' ? 480 : layoutStyle === 'grid' ? 240 : 240) * exportQualityMultiplier;
+      canvas.height = (layoutStyle === 'horizontal' ? 120 : layoutStyle === 'grid' ? 240 : 'auto') * exportQualityMultiplier;
+       if (layoutStyle === 'vertical') {
+          canvas.height = 800 * exportQualityMultiplier; // Chiều cao cố định cho layout dọc
+       }
+
       // Fill background
       ctx.fillStyle = photostripBg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw images
       const validImages = capturedImages.filter(Boolean);
-      let loadedImages = 0;
       
-      validImages.forEach((imgSrc, index) => {
-        const img = new Image();
-        img.onload = () => {
-          let x, y, width, height;
+      // Dùng Promise.all để đảm bảo tất cả ảnh đã được tải trước khi vẽ
+      const imagePromises = validImages.map(imgSrc => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = imgSrc;
+        });
+      });
+
+      const loadedImageElements = await Promise.all(imagePromises);
+
+      loadedImageElements.forEach((img, index) => {
+          let dx, dy, dWidth, dHeight;
           
+          // Tính toán kích thước và vị trí của từng khung ảnh trên canvas cuối cùng
           if (layoutStyle === 'horizontal') {
-            width = canvas.width / 4;
-            height = canvas.height;
-            x = index * width;
-            y = 0;
+            dWidth = canvas.width / 4;
+            dHeight = canvas.height;
+            dx = index * dWidth;
+            dy = 0;
           } else if (layoutStyle === 'grid') {
-            width = canvas.width / 2;
-            height = canvas.height / 2;
-            x = (index % 2) * width;
-            y = Math.floor(index / 2) * height;
-          } else {
-            width = canvas.width;
-            height = canvas.height / 4;
-            x = 0;
-            y = index * height;
+            dWidth = canvas.width / 2;
+            dHeight = canvas.height / 2;
+            dx = (index % 2) * dWidth;
+            dy = Math.floor(index / 2) * dHeight;
+          } else { // vertical
+            dWidth = canvas.width;
+            dHeight = canvas.height / 4;
+            dx = 0;
+            dy = index * dHeight;
           }
           
-          // Apply filters to individual canvas
+          // --- PHẦN SỬA LỖI QUAN TRỌNG NHẤT ---
+          // Tính toán để crop ảnh, giữ nguyên tỉ lệ (mô phỏng object-fit: cover)
+          const imgAspectRatio = img.width / img.height;
+          const destAspectRatio = dWidth / dHeight;
+          
+          let sx = 0, sy = 0, sWidth = img.width, sHeight = img.height;
+
+          if (imgAspectRatio > destAspectRatio) {
+              // Ảnh gốc rộng hơn khung -> cắt bớt chiều rộng
+              sWidth = img.height * destAspectRatio;
+              sx = (img.width - sWidth) / 2;
+          } else {
+              // Ảnh gốc cao hơn khung -> cắt bớt chiều cao
+              sHeight = img.width / destAspectRatio;
+              sy = (img.height - sHeight) / 2;
+          }
+
+          // Vẽ phần ảnh đã được cắt vào đúng khung trên canvas
           const tempCanvas = document.createElement('canvas');
           const tempCtx = tempCanvas.getContext('2d');
           tempCanvas.width = img.width;
           tempCanvas.height = img.height;
-          
           tempCtx.filter = getAdvancedFilterStyle(currentFilter);
           tempCtx.drawImage(img, 0, 0);
-          
-          ctx.drawImage(tempCanvas, x, y, width, height);
-          
+
+          ctx.drawImage(
+            tempCanvas,
+            sx, sy, sWidth, sHeight, // Source (phần cắt từ ảnh gốc)
+            dx, dy, dWidth, dHeight  // Destination (khung trên canvas cuối cùng)
+          );
+          // ------------------------------------
+
           // Add frame
           if (frameStyle !== 'none') {
             ctx.strokeStyle = frameStyle === 'neon' ? '#00ffff' : frameStyle === 'gold' ? '#FFD700' : '#ffffff';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(x, y, width, height);
+            ctx.lineWidth = 4 * exportQualityMultiplier;
+            ctx.strokeRect(dx, dy, dWidth, dHeight);
           }
-          
-          loadedImages++;
-          
-          if (loadedImages === validImages.length) {
-            // Add date and custom text
-            if (isDateEnabled) {
-              ctx.fillStyle = ['#000000', '#1a1a2e'].includes(photostripBg) ? '#ffffff' : '#000000';
-              ctx.font = 'bold 32px Arial';
-              ctx.textAlign = 'center';
-              ctx.fillText(new Date().toLocaleDateString('vi-VN'), canvas.width / 2, canvas.height - 30);
-            }
-            
-            if (customText) {
-              ctx.fillStyle = ['#000000', '#1a1a2e'].includes(photostripBg) ? '#ffffff' : '#000000';
-              ctx.font = 'bold 36px Arial';
-              ctx.textAlign = 'center';
-              ctx.fillText(customText, canvas.width / 2, 50);
-            }
-            
-            // Export
-            const dataURL = canvas.toDataURL('image/png', 1.0);
-            
-            // Download
-            const a = document.createElement('a');
-            a.href = dataURL;
-            a.download = `photostrip-${Date.now()}.png`;
-            a.click();
-            
-            // Save to gallery
-            saveToGallery(dataURL);
-          }
-        };
-        img.src = imgSrc;
       });
+            
+      // Add date and custom text
+      const fontSize = 12 * exportQualityMultiplier;
+      ctx.fillStyle = ['#000000', '#1a1a2e'].includes(photostripBg) ? '#ffffff' : '#000000';
+      ctx.font = `bold ${fontSize}px Arial`;
+      ctx.textAlign = 'center';
+
+      if (isDateEnabled) {
+        ctx.fillText(new Date().toLocaleDateString('vi-VN'), canvas.width / 2, canvas.height - (10 * exportQualityMultiplier));
+      }
+      
+      if (customText) {
+        ctx.fillText(customText, canvas.width / 2, 20 * exportQualityMultiplier);
+      }
+      
+      // Export
+      const dataURL = canvas.toDataURL('image/png', 1.0);
+      
+      // Download
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = `photostrip-${Date.now()}.png`;
+      a.click();
+      
+      // Save to gallery
+      saveToGallery(dataURL);
+
     } catch (error) {
       console.error('Export error:', error);
     }
@@ -985,13 +1016,14 @@ const PhotoBoothApp = () => {
                       <div>
                         <h4 className="text-lg font-semibold text-white mb-3">Stickers</h4>
                         <div className="grid grid-cols-6 gap-2">
+                          {/* === PHẦN ĐÃ SỬA LỖI KEY === */}
                           {[
                             '✨', '💖', '🚀', '🔥', '💀', '👽', '🌟', '💎', '🦄', '🌈',
                             '⚡', '🎉', '🎊', '🎈', '🎀', '🌸', '🌺', '🌻', '🌙', '☀️',
                             '💫', '⭐', '🌟', '✨', '💥', '💯', '🔮', '🎭', '🎪', '🎨'
-                          ].map(sticker => (
+                          ].map((sticker, index) => (
                             <button
-                              key={sticker}
+                              key={`${sticker}-${index}`}
                               onClick={() => handleAddSticker(sticker)}
                               className="text-2xl p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
                             >

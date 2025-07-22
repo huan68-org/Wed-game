@@ -36,12 +36,19 @@ export const gameList = [
         imageSrc: '/img/PhotoBoothApp.png',
         Component: React.lazy(() => import('/src/components/PhotoboothGame/PhotoboothApp.jsx'))
     },
-    // --- THÊM GAME PACMAN VÀO ĐÂY ---
     {
         key: 'pacman',
         name: 'Pacman Premium',
         description: 'Trải nghiệm game arcade kinh điển, né ma và ăn hết các chấm!',
-        imageSrc: '/img/pacman.png', // Nhớ tạo ảnh này!
+        imageSrc: '/img/pacman.png',
         Component: React.lazy(() => import('/src/components/PacmanGame/PacmanGame.jsx'))
+    },
+    // --- THÊM GAME RẮN SĂN MỒI VÀO ĐÂY ---
+    {
+        key: 'snake',
+        name: 'Rắn Săn Mồi',
+        description: 'Game kinh điển đầy thử thách! Điều khiển con rắn ăn mồi và tránh va chạm.',
+        imageSrc: '/assets/background.jpg', // Sử dụng ảnh background có sẵn
+        Component: React.lazy(() => import('/src/components/SnakeGame/SnakeGame.jsx'))
     }
 ];
