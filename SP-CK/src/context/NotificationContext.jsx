@@ -1,7 +1,7 @@
 // src/context/NotificationContext.jsx (Phiên bản Hoàn chỉnh)
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as websocketService from '../services/websocketService';
+import websocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
 import { v4 as uuidv4 } from 'uuid'; // Import để tạo ID duy nhất
 import 'boxicons/css/boxicons.min.css';

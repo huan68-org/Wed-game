@@ -1,52 +1,38 @@
-// src/context/FriendsContext.jsx (Phiên bản Hoàn chỉnh)
-
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as api from '../services/api';
-import * as websocketService from '../services/websocketService';
+import * as api from '/src/services/api.js';
+import websocketService from '../services/websocketService';
 import { useAuth } from './AuthContext';
-import { useNotifications } from './NotificationContext';
 
 const FriendsContext = createContext(null);
 
-export const useFriends = () => {
-    const context = useContext(FriendsContext);
-    if (!context) {
-        throw new Error('useFriends must be used within a FriendsProvider');
-    }
-    return context;
-};
-
 export const FriendsProvider = ({ children }) => {
     const { apiKey, isAuthenticated } = useAuth();
-    const { addNotification } = useNotifications();
-
     const [friends, setFriends] = useState([]);
     const [requests, setRequests] = useState([]);
     const [onlineFriends, setOnlineFriends] = useState(new Set());
-    const [isLoading, setIsLoading] = useState(true);
 
     const fetchAllFriendData = useCallback(async () => {
         if (!isAuthenticated || !apiKey) {
             setFriends([]);
             setRequests([]);
-            setIsLoading(false);
+            setOnlineFriends(new Set());
             return;
         }
 
-        setIsLoading(true);
         try {
-            const data = await api.getFriends(apiKey);
-            setFriends(data.friends || []);
-            const received = (data.receivedRequests || []).map(r => ({ ...r, status: 'pending_received' }));
-            const sent = (data.sentRequests || []).map(r => ({ ...r, status: 'pending_sent' }));
-            setRequests([...received, ...sent]);
+            const allRelations = await api.getFriends(apiKey);
+            setFriends(allRelations.filter(r => r.status === 'friends'));
+            setRequests(allRelations.filter(r => r.status !== 'friends'));
+            
+            if (websocketService.isConnected()) {
+                 websocketService.send('friend:get_initial_online_list');
+            }
         } catch (error) {
             console.error("Lỗi khi tải danh sách bạn bè:", error);
-            addNotification({ type: 'error', title: 'Lỗi', message: 'Không thể tải dữ liệu bạn bè.' });
-        } finally {
-            setIsLoading(false);
+            setFriends([]);
+            setRequests([]);
         }
-    }, [apiKey, isAuthenticated, addNotification]);
+    }, [apiKey, isAuthenticated]);
 
     useEffect(() => {
         fetchAllFriendData();
@@ -55,65 +41,82 @@ export const FriendsProvider = ({ children }) => {
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        const handleFriendChange = () => fetchAllFriendData();
-
-        const handleFriendOnline = (payload) => setOnlineFriends(prev => new Set(prev).add(payload.username));
-        const handleFriendOffline = (payload) => {
+        const handleFriendOnline = ({ username }) => {
             setOnlineFriends(prev => {
                 const newSet = new Set(prev);
-                newSet.delete(payload.username);
+                newSet.add(username);
                 return newSet;
             });
         };
-        const handleOnlineList = (onlineUsernames) => setOnlineFriends(new Set(onlineUsernames));
 
-        websocketService.on('friend:new_request', handleFriendChange);
-        websocketService.on('friend:request_accepted', handleFriendChange);
-        websocketService.on('friend:request_declined', handleFriendChange);
-        websocketService.on('friend:removed', handleFriendChange);
+        const handleFriendOffline = ({ username }) => {
+            setOnlineFriends(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(username);
+                return newSet;
+            });
+        };
+
+        const handleOnlineList = (onlineUsernames) => {
+            if (Array.isArray(onlineUsernames)) {
+                setOnlineFriends(new Set(onlineUsernames));
+            } else {
+                console.error("[ERROR] Payload của 'friend:list_online' không phải là một mảng!", onlineUsernames);
+            }
+        };
+
+        const handleFriendChange = () => {
+            fetchAllFriendData();
+        };
+
+        const handleNewNotification = (payload) => {
+            if (payload && payload.type === 'friend_request') {
+                fetchAllFriendData();
+            }
+        };
+
         websocketService.on('friend:online', handleFriendOnline);
         websocketService.on('friend:offline', handleFriendOffline);
         websocketService.on('friend:list_online', handleOnlineList);
+        websocketService.on('friend:request_accepted', handleFriendChange);
+        websocketService.on('friend:request_declined', handleFriendChange);
+        websocketService.on('friend:removed', handleFriendChange);
+        websocketService.on('notification:new', handleNewNotification);
 
         return () => {
-            websocketService.off('friend:new_request', handleFriendChange);
-            websocketService.off('friend:request_accepted', handleFriendChange);
-            websocketService.off('friend:request_declined', handleFriendChange);
-            websocketService.off('friend:removed', handleFriendChange);
             websocketService.off('friend:online', handleFriendOnline);
             websocketService.off('friend:offline', handleFriendOffline);
             websocketService.off('friend:list_online', handleOnlineList);
+            websocketService.off('friend:request_accepted', handleFriendChange);
+            websocketService.off('friend:request_declined', handleFriendChange);
+            websocketService.off('friend:removed', handleFriendChange);
+            websocketService.off('notification:new', handleNewNotification);
         };
     }, [isAuthenticated, fetchAllFriendData]);
 
     const sendFriendRequest = async (targetUsername) => {
-        try {
-            const res = await api.sendFriendRequest(apiKey, targetUsername);
-            addNotification({ type: 'success', title: 'Thành công', message: res.message });
-            fetchAllFriendData();
-        } catch (error) {
-            addNotification({ type: 'error', title: 'Thất bại', message: error.message });
-        }
+        const res = await api.sendFriendRequest(apiKey, targetUsername);
+        await fetchAllFriendData();
+        return res;
     };
 
     const respondToFriendRequest = async (requesterUsername, action) => {
-        try {
-            const res = await api.respondToFriendRequest(apiKey, requesterUsername, action);
-            addNotification({ type: 'info', title: 'Thông báo', message: res.message });
-            fetchAllFriendData();
-        } catch (error) {
-            addNotification({ type: 'error', title: 'Lỗi', message: error.message });
-        }
+        const res = await api.respondToFriendRequest(apiKey, requesterUsername, action);
+        await fetchAllFriendData();
+        return res;
     };
 
     const removeFriend = async (friendUsername) => {
-        if (!window.confirm(`Bạn có chắc muốn xóa ${friendUsername} khỏi danh sách bạn bè không?`)) return;
+        if (!window.confirm(`Bạn có chắc muốn xóa ${friendUsername} khỏi danh sách bạn bè không?`)) {
+            return;
+        }
         try {
             const res = await api.removeFriend(apiKey, friendUsername);
-            addNotification({ type: 'info', title: 'Thông báo', message: res.message });
-            fetchAllFriendData();
+            await fetchAllFriendData();
+            alert(res.message);
         } catch (error) {
-            addNotification({ type: 'error', title: 'Lỗi', message: error.message });
+            console.error("Lỗi khi xóa bạn:", error);
+            alert(`Lỗi: ${error.message}`);
         }
     };
     
@@ -121,7 +124,6 @@ export const FriendsProvider = ({ children }) => {
         friends,
         requests,
         onlineFriends,
-        isLoading,
         sendFriendRequest,
         respondToFriendRequest,
         removeFriend,
@@ -132,4 +134,12 @@ export const FriendsProvider = ({ children }) => {
             {children}
         </FriendsContext.Provider>
     );
+};
+
+export const useFriends = () => {
+    const context = useContext(FriendsContext);
+    if (!context) {
+        throw new Error('useFriends phải được sử dụng bên trong FriendsProvider');
+    }
+    return context;
 };

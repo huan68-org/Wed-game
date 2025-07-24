@@ -1,5 +1,3 @@
-// backend-server/server.js
-
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -180,29 +178,11 @@ app.post('/api/upload/puzzle-image', upload.single('puzzleImage'), (req, res) =>
 
 const apiHandlerContext = { readDatabase, writeDatabase, clients };
 
-app.get('/api/friends', authenticateUser, async (req, res) => {
+app.get('/api/friends', authenticateUser, (req, res) => {
     try {
         const allRelations = req.user.friends || [];
-        const responseData = {
-            friends: [],
-            receivedRequests: [],
-            sentRequests: []
-        };
+        res.status(200).json(allRelations);
 
-        for (const relation of allRelations) {
-            switch (relation.status) {
-                case 'friends':
-                    responseData.friends.push(relation);
-                    break;
-                case 'pending_received':
-                    responseData.receivedRequests.push(relation);
-                    break;
-                case 'pending_sent':
-                    responseData.sentRequests.push(relation);
-                    break;
-            }
-        }
-        res.status(200).json(responseData);
     } catch (error) {
         console.error("Error in GET /api/friends:", error);
         res.status(500).json({ message: "Lỗi server khi lấy danh sách bạn bè." });
@@ -243,17 +223,13 @@ wss.on('connection', async (ws, request, username) => {
         const database = await readDatabase();
         const userFriends = (database[username]?.friends || []).filter(f => f.status === 'friends').map(f => f.username);
         
-        const onlineFriendsUsernames = [];
         userFriends.forEach(friendUsername => {
-            const friendClient = clients.get(friendUsername);
-            if (friendClient?.readyState === 1) {
+            const onlineClientKey = Array.from(clients.keys()).find(key => key.toLowerCase() === friendUsername.toLowerCase());
+            const friendClient = onlineClientKey ? clients.get(onlineClientKey) : undefined;
+            if (friendClient && friendClient.readyState === 1) {
                 friendClient.send(JSON.stringify({ type: 'friend:online', payload: { username } }));
-                onlineFriendsUsernames.push(friendUsername);
             }
         });
-
-        ws.send(JSON.stringify({ type: 'friend:list_online', payload: onlineFriendsUsernames }));
-        
     } catch (error) {
         console.error(`[CONNECTION_HANDLER_ERROR] for ${username}:`, error);
     }
@@ -294,6 +270,22 @@ wss.on('connection', async (ws, request, username) => {
                     }
                 }
             } else {
+                if (type === 'friend:get_initial_online_list') {
+                    readDatabase().then(database => {
+                        const userFriends = (database[ws.username]?.friends || []).filter(f => f.status === 'friends').map(f => f.username);
+                        const onlineFriendsUsernames = [];
+                        userFriends.forEach(friendUsername => {
+                            const onlineClientKey = Array.from(clients.keys()).find(key => key.toLowerCase() === friendUsername.toLowerCase());
+                            const friendClient = onlineClientKey ? clients.get(onlineClientKey) : undefined;
+                            if (friendClient && friendClient.readyState === 1) {
+                                onlineFriendsUsernames.push(friendUsername);
+                            }
+                        });
+                        ws.send(JSON.stringify({ type: 'friend:list_online', payload: onlineFriendsUsernames }));
+                    });
+                    return;
+                }
+
                 if (type === 'chat:dm') {
                     handleDirectMessage(ws, payload, context);
                 }
@@ -322,7 +314,11 @@ wss.on('connection', async (ws, request, username) => {
         readDatabase().then(database => {
             const userFriends = (database[usernameToDisconnect]?.friends || []).filter(f => f.status === 'friends').map(f => f.username);
             userFriends.forEach(friendUsername => {
-                clients.get(friendUsername)?.send(JSON.stringify({ type: 'friend:offline', payload: { username: usernameToDisconnect } }));
+                const onlineClientKey = Array.from(clients.keys()).find(key => key.toLowerCase() === friendUsername.toLowerCase());
+                const friendClient = onlineClientKey ? clients.get(onlineClientKey) : undefined;
+                if (friendClient) {
+                    friendClient.send(JSON.stringify({ type: 'friend:offline', payload: { username: usernameToDisconnect } }));
+                }
             });
         });
 

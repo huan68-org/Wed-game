@@ -2,246 +2,159 @@
   "h": {
     "credentials": {
       "password": "1",
-      "apiKey": "14518996-35d0-4e4d-9be2-7277f225a1c1"
+      "apiKey": "9d90d2ee-0a6f-419b-b8c6-8327860332c1"
     },
     "profile": {
-      "createdAt": "2025-07-22T10:32:37.243Z"
+      "createdAt": "2025-07-23T13:41:41.177Z"
     },
     "history": [
       {
-        "id": "76facce8-19e0-4b7b-9e1e-b03156aacc0d",
-        "date": "2025-07-22T12:19:49.902Z",
+        "id": "a9557a05-9fc0-475e-9230-e5bcc8222d03",
+        "date": "2025-07-24T10:42:57.075Z",
         "gameName": "Bắn Tàu",
         "difficulty": "Online vs test",
         "result": "Thua",
         "imageSrc": "/img/battleship.jpg"
       },
       {
-        "id": "e45f88f2-d801-443a-8df2-5ba02ff95e63",
-        "date": "2025-07-22T12:19:29.326Z",
-        "gameName": "Bắn Tàu",
-        "difficulty": "Online vs test",
-        "result": "Thắng",
-        "imageSrc": "/img/battleship.jpg"
-      },
-      {
-        "id": "be3b28de-21f9-4faa-87ca-42a121f26333",
-        "date": "2025-07-22T12:12:02.431Z",
+        "id": "5b300a08-67f7-41b3-b2fe-f77ea214ee2e",
+        "date": "2025-07-24T10:36:18.246Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs test",
         "result": "Thắng",
         "imageSrc": "/img/caro.jpg"
       },
       {
-        "id": "f2a4af37-2059-4403-b43b-f866af58186b",
-        "date": "2025-07-22T12:11:36.333Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "81019773-963a-4844-80d3-1e5e5fcd5dbf",
-        "date": "2025-07-22T12:10:16.761Z",
+        "id": "9e622d71-b5d3-4138-b95e-7f5db2f2436f",
+        "date": "2025-07-24T10:35:39.275Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs test",
         "result": "Thắng",
         "imageSrc": "/img/caro.jpg"
       },
       {
-        "id": "2ea2850b-44bc-4ab8-824d-db85572089e8",
-        "date": "2025-07-22T12:05:25.066Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "517a8be3-1845-4e57-aeb8-2659c8308838",
-        "date": "2025-07-22T12:03:43.953Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "78165764-cbb6-4bc3-b3c7-1563c951fc6f",
-        "date": "2025-07-22T12:03:20.313Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "9bb377a7-93b5-41c3-bbfb-6742e4e3798d",
-        "date": "2025-07-22T11:49:44.190Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "12011fd8-e320-4a5a-b63d-9322a7d6a6b9",
-        "date": "2025-07-22T11:32:04.013Z",
+        "id": "28803213-8c75-4b2b-bb3b-15ddd26689db",
+        "date": "2025-07-24T10:28:39.164Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs test",
         "result": "Thắng",
         "imageSrc": "/img/caro.jpg"
       },
       {
-        "id": "ebf558f2-fce2-4d13-82d3-ece568a4f761",
-        "date": "2025-07-22T11:18:49.278Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
+        "id": "cb3ad0ce-1851-47f9-a057-d8348274bdaf",
+        "date": "2025-07-24T08:44:48.571Z",
+        "gameName": "Pacman Siêu Đẳng",
+        "difficulty": "Cấp độ 1",
+        "result": "Thua",
+        "imageSrc": "/img/pacman.jpg"
       },
       {
-        "id": "6772cb4b-6198-4673-a833-fc206cc3d796",
-        "date": "2025-07-22T11:17:45.409Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
+        "id": "658f9c3a-5415-4e6f-ba47-4e44cf9625c5",
+        "date": "2025-07-24T08:22:11.621Z",
+        "gameName": "Xếp hình",
+        "imageSrc": "/uploads/puzzleImage-1753345277140-65744766.jpg",
+        "difficulty": "3x3",
+        "moves": 15,
+        "timeInSeconds": 50
       },
       {
-        "id": "f1b83130-bbc3-4db3-b76d-d393a7d258ce",
-        "date": "2025-07-22T11:16:15.804Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs test",
+        "id": "dc9f1f89-802f-42af-83c9-be3409d383c7",
+        "date": "2025-07-24T08:17:06.625Z",
+        "gameName": "Rắn Săn Mồi",
+        "result": "Đạt 190 điểm",
+        "difficulty": "Cổ điển",
+        "imageSrc": "/img/snake.jpg"
+      },
+      {
+        "id": "cca789a7-a953-45f2-a3b2-471c25f845c9",
+        "date": "2025-07-24T07:49:38.586Z",
+        "gameName": "Pacman Siêu Đẳng",
+        "difficulty": "Cấp độ 1",
         "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
+        "imageSrc": "/img/pacman.jpg"
       }
     ],
     "friends": [
       {
-        "id": "5988bd9c-db4d-422b-88d8-d1fd39fb5a5a",
+        "id": "3769dc97-2c46-4853-bdb5-b28fba00f451",
+        "username": "a",
+        "status": "friends",
+        "since": "2025-07-24T08:48:01.908Z"
+      },
+      {
+        "id": "291460fe-e374-4b8c-aa74-60bbb6d894e0",
         "username": "test",
         "status": "friends",
-        "since": "2025-07-22T10:33:59.928Z"
+        "since": "2025-07-23T13:42:21.111Z"
       }
     ]
   },
   "test": {
     "credentials": {
       "password": "1",
-      "apiKey": "12345047-f362-4696-8df8-0f1e678bec13"
+      "apiKey": "24d5a4fc-3e3a-4670-9c92-c238be29693d"
     },
     "profile": {
-      "createdAt": "2025-07-22T10:33:25.572Z"
+      "createdAt": "2025-07-23T13:42:00.154Z"
     },
     "history": [
       {
-        "id": "ecba876d-984f-435b-a193-f6baabc448bd",
-        "date": "2025-07-22T12:19:49.899Z",
+        "id": "f3d6b20a-6c18-4b16-85c3-4b4914ecdf7e",
+        "date": "2025-07-24T10:42:57.073Z",
         "gameName": "Bắn Tàu",
         "difficulty": "Online vs h",
         "result": "Thắng",
         "imageSrc": "/img/battleship.jpg"
       },
       {
-        "id": "8d802532-da86-4c2e-84e6-bc2f10b39506",
-        "date": "2025-07-22T12:19:29.330Z",
-        "gameName": "Bắn Tàu",
-        "difficulty": "Online vs h",
-        "result": "Thua",
-        "imageSrc": "/img/battleship.jpg"
-      },
-      {
-        "id": "74a29cf5-3b65-4e33-8c94-b4430385faa9",
-        "date": "2025-07-22T12:12:02.435Z",
+        "id": "94653b01-1630-422f-b92a-1c86159fcba5",
+        "date": "2025-07-24T10:36:18.286Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs h",
         "result": "Thua",
         "imageSrc": "/img/caro.jpg"
       },
       {
-        "id": "00b87ea1-83a0-4f8a-938b-ba5b6d2ea028",
-        "date": "2025-07-22T12:11:36.329Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "bd26f5eb-cc52-4cd0-beba-d3561ce29b6f",
-        "date": "2025-07-22T12:10:16.765Z",
+        "id": "e2d3de6a-bb9b-4739-9a6d-1ab83dd74897",
+        "date": "2025-07-24T10:35:39.276Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs h",
         "result": "Thua",
         "imageSrc": "/img/caro.jpg"
       },
       {
-        "id": "6fa60a7e-b384-41a1-a2ef-16353cf4cccd",
-        "date": "2025-07-22T12:05:25.062Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "dd92d319-bf7e-4812-9888-4ca510164e30",
-        "date": "2025-07-22T12:03:43.949Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "239d5009-b4a3-4195-b1f0-84e81640bf24",
-        "date": "2025-07-22T12:03:20.307Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "d56b7036-d7c5-4748-8520-1dd9de9de7b3",
-        "date": "2025-07-22T11:49:44.184Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "d35c7cf8-781b-471b-ab5d-1a3ac03e4711",
-        "date": "2025-07-22T11:32:04.021Z",
+        "id": "c7e03db8-42de-4ed4-b9cb-3c68aba30d80",
+        "date": "2025-07-24T10:28:39.170Z",
         "gameName": "Cờ Caro",
         "difficulty": "Online vs h",
         "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "09a3eed3-121e-46da-a35a-96b138e0a1bc",
-        "date": "2025-07-22T11:18:49.285Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thua",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "3e7591c4-2dbe-489b-a327-fe62ddcf6699",
-        "date": "2025-07-22T11:17:45.404Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
-        "imageSrc": "/img/caro.jpg"
-      },
-      {
-        "id": "370772a0-eabd-4884-ac6a-412c3e51a448",
-        "date": "2025-07-22T11:16:15.800Z",
-        "gameName": "Cờ Caro",
-        "difficulty": "Online vs h",
-        "result": "Thắng",
         "imageSrc": "/img/caro.jpg"
       }
     ],
     "friends": [
       {
-        "id": "5988bd9c-db4d-422b-88d8-d1fd39fb5a5a",
+        "id": "291460fe-e374-4b8c-aa74-60bbb6d894e0",
         "username": "h",
         "status": "friends",
-        "since": "2025-07-22T10:33:59.928Z"
+        "since": "2025-07-23T13:42:21.111Z"
+      }
+    ]
+  },
+  "a": {
+    "credentials": {
+      "password": "1",
+      "apiKey": "be3dd332-082a-4d7f-b018-da7bca7e8784"
+    },
+    "profile": {
+      "createdAt": "2025-07-24T08:47:40.618Z"
+    },
+    "history": [],
+    "friends": [
+      {
+        "id": "3769dc97-2c46-4853-bdb5-b28fba00f451",
+        "username": "h",
+        "status": "friends",
+        "since": "2025-07-24T08:48:01.908Z"
       }
     ]
   }

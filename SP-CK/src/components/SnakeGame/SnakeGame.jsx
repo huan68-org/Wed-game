@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './SnakeGame.css';
+// MỚI: Import hook để lưu lịch sử từ context
+import { useHistory } from '../../context/HistoryContext';
 
 const GRID_SIZE = 20;
 const INITIAL_SNAKE = [
@@ -12,6 +14,9 @@ const INITIAL_DIRECTION = 'RIGHT';
 const GAME_SPEED = 150;
 
 const SnakeGame = ({ onBack }) => {
+  // MỚI: Lấy hàm lưu lịch sử từ context
+  const { saveGameForUser } = useHistory();
+
   const [snake, setSnake] = useState(INITIAL_SNAKE);
   const [food, setFood] = useState(INITIAL_FOOD);
   const [direction, setDirection] = useState(INITIAL_DIRECTION);
@@ -20,7 +25,31 @@ const SnakeGame = ({ onBack }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  
   const gameLoopRef = useRef();
+  // MỚI: Ref để đảm bảo game chỉ được lưu 1 lần mỗi khi thua
+  const historySavedRef = useRef(false);
+
+  // MỚI: useEffect để lưu lịch sử khi game kết thúc
+  useEffect(() => {
+    // Chỉ thực hiện khi game over và chưa được lưu
+    if (gameOver && !historySavedRef.current) {
+        // Đánh dấu là đã lưu để tránh lưu nhiều lần
+        historySavedRef.current = true;
+
+        // Chuẩn bị dữ liệu để lưu
+        const gameData = {
+            gameName: "Rắn Săn Mồi",
+            result: `Đạt ${score} điểm`, // Mô tả kết quả cùng với điểm số
+            difficulty: 'Cổ điển',      // Bạn có thể tùy chỉnh độ khó nếu muốn
+            imageSrc: '/img/snake.jpg' // Đường dẫn tới ảnh đại diện của game
+        };
+
+        // Gọi hàm lưu lịch sử
+        saveGameForUser(gameData);
+    }
+  }, [gameOver, score, saveGameForUser]);
+
 
   // Load high score from localStorage
   useEffect(() => {
@@ -40,12 +69,17 @@ const SnakeGame = ({ onBack }) => {
 
   // Generate random food position
   const generateFood = useCallback(() => {
-    const newFood = {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE)
-    };
+    let newFood;
+    // Đảm bảo thức ăn không xuất hiện trên thân rắn
+    do {
+        newFood = {
+            x: Math.floor(Math.random() * GRID_SIZE),
+            y: Math.floor(Math.random() * GRID_SIZE)
+        };
+    } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+    
     return newFood;
-  }, []);
+  }, [snake]);
 
   // Move snake
   const moveSnake = useCallback(() => {
@@ -55,45 +89,32 @@ const SnakeGame = ({ onBack }) => {
       const newSnake = [...currentSnake];
       const head = { ...newSnake[0] };
 
-      // Move head based on direction
       switch (direction) {
-        case 'RIGHT':
-          head.x += 1;
-          break;
-        case 'LEFT':
-          head.x -= 1;
-          break;
-        case 'UP':
-          head.y -= 1;
-          break;
-        case 'DOWN':
-          head.y += 1;
-          break;
-        default:
-          break;
+        case 'RIGHT': head.x += 1; break;
+        case 'LEFT': head.x -= 1; break;
+        case 'UP': head.y -= 1; break;
+        case 'DOWN': head.y += 1; break;
+        default: break;
       }
 
-      // Check wall collision
       if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
         setGameOver(true);
         return currentSnake;
       }
 
-      // Check self collision
-      if (newSnake.some(segment => segment.x === head.x && segment.y === head.y)) {
-        setGameOver(true);
-        return currentSnake;
+      for (let i = 1; i < newSnake.length; i++) {
+        if (head.x === newSnake[i].x && head.y === newSnake[i].y) {
+            setGameOver(true);
+            return currentSnake;
+        }
       }
 
       newSnake.unshift(head);
 
-      // Check food collision
       if (head.x === food.x && head.y === food.y) {
         setScore(prev => prev + 10);
         setFood(generateFood());
-        // Snake grows (don't remove tail)
       } else {
-        // Remove tail if no food eaten
         newSnake.pop();
       }
 
@@ -113,60 +134,46 @@ const SnakeGame = ({ onBack }) => {
   }, [moveSnake, gameStarted, gameOver, isPaused]);
 
   // Handle keyboard input
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (!gameStarted || isPaused || gameOver) return;
-
-      const oppositeDirections = {
-        'UP': 'DOWN',
-        'DOWN': 'UP',
-        'LEFT': 'RIGHT',
-        'RIGHT': 'LEFT'
-      };
-
-      let newDirection;
-      switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          newDirection = 'UP';
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          newDirection = 'DOWN';
-          break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          newDirection = 'LEFT';
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          newDirection = 'RIGHT';
-          break;
-        case ' ':
-          e.preventDefault();
-          togglePause();
-          return;
-        default:
-          return;
-      }
-
+  const handleKeyPress = useCallback((e) => {
+    if (e.key === ' ' && gameStarted && !gameOver) {
       e.preventDefault();
-      
-      // Prevent moving in opposite direction
-      if (newDirection !== oppositeDirections[direction]) {
-        setDirection(newDirection);
-      }
+      togglePause();
+      return;
+    }
+  
+    if (isPaused || gameOver) return;
+  
+    const oppositeDirections = {
+      'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT'
     };
-
+  
+    let newDirection;
+    switch (e.key) {
+      case 'ArrowUp': case 'w': case 'W': newDirection = 'UP'; break;
+      case 'ArrowDown': case 's': case 'S': newDirection = 'DOWN'; break;
+      case 'ArrowLeft': case 'a': case 'A': newDirection = 'LEFT'; break;
+      case 'ArrowRight': case 'd': case 'D': newDirection = 'RIGHT'; break;
+      default: return;
+    }
+  
+    e.preventDefault();
+  
+    setDirection(currentDirection => {
+      if (currentDirection !== oppositeDirections[newDirection]) {
+        return newDirection;
+      }
+      return currentDirection;
+    });
+  }, [isPaused, gameOver, gameStarted]);
+  
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [direction, gameStarted, isPaused, gameOver]);
+  }, [handleKeyPress]);
 
   const startGame = () => {
+    // MỚI: Reset lại cờ đã lưu khi bắt đầu game mới
+    historySavedRef.current = false;
     setGameStarted(true);
     setGameOver(false);
     setIsPaused(false);
@@ -178,11 +185,13 @@ const SnakeGame = ({ onBack }) => {
 
   const togglePause = () => {
     if (gameStarted && !gameOver) {
-      setIsPaused(!isPaused);
+      setIsPaused(prev => !prev);
     }
   };
 
   const resetGame = () => {
+    // MỚI: Reset lại cờ đã lưu khi reset game
+    historySavedRef.current = false;
     setGameStarted(false);
     setGameOver(false);
     setIsPaused(false);
@@ -197,10 +206,7 @@ const SnakeGame = ({ onBack }) => {
     if (!gameStarted || isPaused || gameOver) return;
 
     const oppositeDirections = {
-      'UP': 'DOWN',
-      'DOWN': 'UP',
-      'LEFT': 'RIGHT',
-      'RIGHT': 'LEFT'
+      'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT'
     };
 
     if (newDirection !== oppositeDirections[direction]) {
@@ -208,34 +214,21 @@ const SnakeGame = ({ onBack }) => {
     }
   };
 
-  // Render game grid
   const renderGrid = () => {
     const grid = [];
     for (let y = 0; y < GRID_SIZE; y++) {
       for (let x = 0; x < GRID_SIZE; x++) {
         let cellClass = 'grid-cell';
         
-        // Check if cell contains snake
         const isSnakeHead = snake[0] && snake[0].x === x && snake[0].y === y;
         const isSnakeBody = snake.slice(1).some(segment => segment.x === x && segment.y === y);
-        
-        // Check if cell contains food
         const isFood = food.x === x && food.y === y;
 
-        if (isSnakeHead) {
-          cellClass += ' snake-head';
-        } else if (isSnakeBody) {
-          cellClass += ' snake-body';
-        } else if (isFood) {
-          cellClass += ' food';
-        }
+        if (isSnakeHead) cellClass += ' snake-head';
+        else if (isSnakeBody) cellClass += ' snake-body';
+        else if (isFood) cellClass += ' food';
 
-        grid.push(
-          <div
-            key={`${x}-${y}`}
-            className={cellClass}
-          />
-        );
+        grid.push(<div key={`${x}-${y}`} className={cellClass} />);
       }
     }
     return grid;
@@ -335,6 +328,7 @@ const SnakeGame = ({ onBack }) => {
                 <h2>GAME OVER</h2>
                 <div className="final-score">
                   <p>Điểm của bạn: <strong>{score}</strong></p>
+                  {score >= highScore && score > 0 && <p className="new-high-score">🎉 KỶ LỤC MỚI! 🎉</p>}
                   <p>Điểm cao nhất: <strong>{highScore}</strong></p>
                 </div>
                 <button className="restart-button" onClick={startGame}>
@@ -345,7 +339,6 @@ const SnakeGame = ({ onBack }) => {
           )}
         </div>
 
-        {/* Touch Controls for Mobile */}
         <div className="touch-controls">
           <div className="control-row">
             <button className="touch-btn" onClick={() => handleTouchControl('UP')}>

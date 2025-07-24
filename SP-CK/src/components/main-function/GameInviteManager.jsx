@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import * as websocketService from '../../services/websocketService';
+import websocketService from '../../services/websocketService';
 import GameInvitePopup from './GameInvitePopup';
 
 const GameInviteManager = () => {

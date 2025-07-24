@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import * as websocketService from '../../services/websocketService';
+import websocketService from '../../services/websocketService';
 import { useAuth } from '../../context/AuthContext';
 import { useHistory } from '../../context/HistoryContext';
-import { send } from '../../services/websocketService';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -138,7 +137,7 @@ export const useBattleshipSocket = () => {
 
             const currentState = gameStateRef.current;
             if (currentState.roomId && (currentState.status === 'placement' || currentState.status === 'combat')) {
-                send('game:leave', { roomId: currentState.roomId });
+                websocketService.send('game:leave', { roomId: currentState.roomId });
             }
         };
     }, [apiKey, user.username, updateGameState, saveGameForUser]);
@@ -147,12 +146,12 @@ export const useBattleshipSocket = () => {
         const newMatchmakingId = generateId();
         matchmakingIdRef.current = newMatchmakingId;
         updateGameState({ status: 'waiting' });
-        send('battleship:find_match', { matchmakingId: newMatchmakingId });
+        websocketService.send('battleship:find_match', { matchmakingId: newMatchmakingId });
     };
 
     const leaveLobby = () => {
         if (matchmakingIdRef.current) {
-            send('battleship:leave', { matchmakingId: matchmakingIdRef.current });
+            websocketService.send('battleship:leave', { matchmakingId: matchmakingIdRef.current });
             matchmakingIdRef.current = null;
         }
         updateGameState({ status: 'lobby', roomId: null });
@@ -166,7 +165,7 @@ export const useBattleshipSocket = () => {
             }
         });
         updateGameState({ myBoard: newMyBoard });
-        send('battleship:place_ships', { ships });
+        websocketService.send('battleship:place_ships', { ships });
     };
     
     const fireShot = (index) => {
@@ -177,7 +176,7 @@ export const useBattleshipSocket = () => {
 
     const requestRematch = () => {
         isRematchingRef.current = true;
-        send('battleship:request_rematch');
+        websocketService.send('battleship:request_rematch');
     };
 
     const leaveGame = () => {

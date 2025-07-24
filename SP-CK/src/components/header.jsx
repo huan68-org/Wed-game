@@ -1,10 +1,7 @@
-// src/components/header.jsx (Phiên bản Hoàn chỉnh)
-
 import React, { useState, useEffect, useRef } from 'react';
 import 'boxicons/css/boxicons.min.css';
 import { useNotifications } from '../context/NotificationContext';
 
-// Custom hook để xử lý "click outside"
 const useClickOutside = (ref, callback) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -79,7 +76,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                     ))}
                 </div>
             </div>
-
             <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-purple-500/20 shadow-2xl shadow-purple-500/10' : 'bg-transparent'}`}>
                 <div className="relative px-4 py-4 lg:px-20">
                     <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-purple-900/20 to-black/40 backdrop-blur-xl rounded-2xl border border-white/10"></div>
@@ -95,7 +91,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                                 <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent group-hover:from-purple-400 group-hover:to-pink-400 transition-all duration-300">HUAN</h1>
                             </div>
                         </div>
-
                         <nav className="hidden lg:flex items-center gap-10">
                             {navigationItems.map((item) => {
                                 const isActive = currentView === item.id || (item.id === 'games' && isGameView(currentView));
@@ -108,7 +103,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                                 );
                             })}
                         </nav>
-
                         <div className="flex items-center gap-4">
                             <div className="relative" ref={notificationsRef}>
                                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-3 text-gray-300 hover:text-white transition-all duration-300 hover:bg-white/10 rounded-xl group">
@@ -146,7 +140,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                                     </div>
                                 )}
                             </div>
-                            
                             {user && (
                                 <div className="relative" ref={userMenuRef}>
                                     <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-3 p-2 pr-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-2xl hover:from-purple-600/30 hover:to-pink-600/30 transition-all">
@@ -167,7 +160,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                                     )}
                                 </div>
                             )}
-
                             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-3 text-gray-300 hover:text-white transition-colors hover:bg-white/10 rounded-xl">
                                 <i className={`bx ${isMobileMenuOpen ? 'bx-x' : 'bx-menu'} text-2xl transition-all duration-300`}></i>
                             </button>
@@ -175,7 +167,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                     </div>
                 </div>
             </header>
-
             {isMobileMenuOpen && (
                 <div className="lg:hidden fixed inset-0 z-40 bg-black/90 backdrop-blur-xl">
                     <div className="flex flex-col h-full pt-24 pb-8">
@@ -200,7 +191,6 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                     </div>
                 </div>
             )}
-
             <style jsx>{`
                 @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; } 50% { transform: translateY(-10px) rotate(180deg); opacity: 1; } }
                 .animate-float { animation: float var(--duration, 4s) ease-in-out infinite; }

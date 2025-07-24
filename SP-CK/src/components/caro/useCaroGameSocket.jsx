@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import *as websocketService from '../../services/websocketService';
+import websocketService from '../../services/websocketService';
 import { useHistory } from '../../context/HistoryContext';
 import { useAuth } from '../../context/AuthContext';
-import { send } from '../../services/websocketService';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -113,7 +112,7 @@ export const useCaroGameSocket = () => {
 
             const currentState = gameStateRef.current;
             if (currentState.roomId && currentState.status === 'playing') {
-                send('game:leave', { roomId: currentState.roomId });
+                websocketService.send('game:leave', { roomId: currentState.roomId });
             }
         };
     }, [apiKey, saveGameForUser, updateGameState]);
@@ -122,7 +121,7 @@ export const useCaroGameSocket = () => {
         const newMatchmakingId = generateId();
         matchmakingIdRef.current = newMatchmakingId;
         updateGameState({ status: 'waiting' });
-        send('caro:find_match', { matchmakingId: newMatchmakingId });
+        websocketService.send('caro:find_match', { matchmakingId: newMatchmakingId });
     };
 
     const leaveLobby = () => {
@@ -136,20 +135,20 @@ export const useCaroGameSocket = () => {
     const makeMove = (index) => {
         const currentState = gameStateRef.current;
         if (currentState.status === 'playing' && currentState.isMyTurn && !currentState.board[index]) {
-            send('caro:move', { index });
+            websocketService.send('caro:move', { index });
         }
     };
     
     const requestRematch = () => {
         isRematchingRef.current = true;
-        send('caro:request_rematch');
+        websocketService.send('caro:request_rematch');
     }
 
     const leaveGame = () => {
         isRematchingRef.current = false;
         const currentState = gameStateRef.current;
         if (currentState.roomId) {
-            send('game:leave', { roomId: currentState.roomId });
+            websocketService.send('game:leave', { roomId: currentState.roomId });
         }
         updateGameState({ status: 'lobby', roomId: null, postGameStatus: 'none' });
     };

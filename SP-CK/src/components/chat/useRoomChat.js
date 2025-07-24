@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import * as websocketService from '/src/services/websocketService.js';
+import websocketService from '/src/services/websocketService.js';
 
 export const useRoomChat = (roomId) => {
     const [chatMessages, setChatMessages] = useState([]);
@@ -23,7 +23,7 @@ export const useRoomChat = (roomId) => {
 
     const sendRoomMessage = (message) => {
         if (!roomId || !message.trim()) return;
-        websocketService.emit('chat:room_message', { message });
+        websocketService.send('chat:room_message', { message });
     };
 
     return { chatMessages, sendRoomMessage };
