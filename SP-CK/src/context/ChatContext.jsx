@@ -83,7 +83,7 @@ export const ChatProvider = ({ children }) => {
             console.error("Không thể gửi tin nhắn: API Key không tồn tại.");
             return;
         }
-        websocketService.emit('chat:dm', { recipient, message });
+        websocketService.send('chat:dm', { recipient, message });
     };
     
     const value = { activeChats, openChat, closeChat, sendMessage, unreadChats };

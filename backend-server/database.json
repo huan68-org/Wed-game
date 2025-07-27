@@ -157,5 +157,29 @@
         "since": "2025-07-24T08:48:01.908Z"
       }
     ]
+  },
+  "conversations": {
+    "h_test": {
+      "participants": [
+        "test",
+        "h"
+      ],
+      "messages": [
+        {
+          "id": "b0fd38ae-9b69-4819-b9ab-e6a916dc5e34",
+          "sender": "test",
+          "recipient": "h",
+          "message": "aloo",
+          "timestamp": "2025-07-24T14:31:29.506Z"
+        },
+        {
+          "id": "d69034e6-5791-45f5-9973-16180178ba3e",
+          "sender": "h",
+          "recipient": "test",
+          "message": "aloo",
+          "timestamp": "2025-07-24T14:31:42.345Z"
+        }
+      ]
+    }
   }
 }
