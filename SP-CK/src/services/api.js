@@ -1,5 +1,7 @@
-const API_URL = 'http://localhost:8080/api';
-export const BASE_URL = 'http://localhost:8080';
+const DEPLOYED_URL = 'https://wed-game-backend.onrender.com'; 
+
+const API_URL = `${DEPLOYED_URL}/api`;
+export const BASE_URL = DEPLOYED_URL;
 
 async function handleResponse(response) {
     if (!response.ok) {
