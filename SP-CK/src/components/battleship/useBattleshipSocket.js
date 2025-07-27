@@ -170,7 +170,7 @@ export const useBattleshipSocket = () => {
     
     const fireShot = (index) => {
         if (gameState.isMyTurn) {
-            send('battleship:fire_shot', { index });
+            websocketService.send('battleship:fire_shot', { index });
         }
     };
 

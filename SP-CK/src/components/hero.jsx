@@ -295,7 +295,8 @@ const Hero = () => {
       </div>
       {showProfile && (
         <ProfilePlayer 
-          user={user} 
+          user={user}
+          history={history}
           onClose={() => setShowProfile(false)} 
         />
       )}

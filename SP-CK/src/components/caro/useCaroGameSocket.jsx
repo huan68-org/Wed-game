@@ -62,7 +62,7 @@ export const useCaroGameSocket = () => {
                 const isWin = data.winner === gameStateRef.current.mySymbol;
                 const resultText = data.winner ? (isWin ? 'Thắng' : 'Thua') : 'Hòa';
                 
-                saveGameForUser(apiKey, {
+                saveGameForUser({
                     gameName: 'Cờ Caro',
                     difficulty: `Online vs ${gameStateRef.current.opponent}`,
                     result: resultText,
