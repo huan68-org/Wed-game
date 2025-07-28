@@ -182,7 +182,7 @@ export const useBattleshipSocket = () => {
     const leaveGame = () => {
         isRematchingRef.current = false;
         if(gameState.roomId) {
-            websocketService.emit('game:leave', { roomId: gameState.roomId });
+            websocketService.send('game:leave', { roomId: gameState.roomId });
         }
         updateGameState({ status: 'lobby', roomId: null, postGameStatus: 'none' });
     };
