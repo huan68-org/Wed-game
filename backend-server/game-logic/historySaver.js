@@ -1,38 +1,26 @@
 const { v4: uuidv4 } = require('uuid');
-const fs = require('fs/promises');
-const path = require('path');
-
-const DB_FILE = path.join(__dirname, '..', 'database.json');
-
-async function readDatabase() {
-    try {
-        const data = await fs.readFile(DB_FILE, 'utf-8');
-        return data ? JSON.parse(data) : {};
-    } catch (error) {
-        if (error.code === 'ENOENT') return {};
-        console.error("Error reading database for history saver:", error);
-        return {};
-    }
-}
-
-async function writeDatabase(data) {
-    await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-}
+const User = require('../models/User'); 
 
 async function saveSingleRecord(username, gameData) {
     if (!username || !gameData) return false;
     try {
-        const database = await readDatabase();
-        if (!database[username]) return false;
-
-        if (!database[username].history) database[username].history = [];
         const newRecord = { id: uuidv4(), date: new Date().toISOString(), ...gameData };
-        database[username].history.unshift(newRecord);
-        if (database[username].history.length > 20) database[username].history.pop();
-        await writeDatabase(database);
+        
+        await User.updateOne(
+            { username: username.toLowerCase() },
+            { 
+                $push: { 
+                    history: {
+                        $each: [newRecord],
+                        $position: 0,
+                        $slice: 20    
+                    }
+                }
+            }
+        );
         return true;
     } catch (error) {
-        console.error(`[HISTORY_SAVER] Failed to save game for ${username}`, error);
+        console.error(`[HISTORY_SAVER] Không thể lưu game cho ${username}`, error);
         return false;
     }
 }

@@ -1,15 +1,15 @@
-// src/components/FriendsPage/PendingRequests.jsx
+
 import React from 'react';
 import { useFriends } from '../../context/FriendsContext';
 
 const PendingRequests = () => {
-    // Thêm isLoading để hiển thị trạng thái tải
+
     const { requests, respondToFriendRequest, isLoading } = useFriends();
 
-    const received = requests.filter(r => r.status === 'pending_received');
-    const sent = requests.filter(r => r.status === 'pending_sent');
+    const received = requests.filter(r => r.status === 'pending');
+    const sent = requests.filter(r => r.status === 'sent');
 
-    // Hiển thị trạng thái đang tải dữ liệu
+
     if (isLoading) {
         return (
             <div className="bg-gray-800 p-6 rounded-lg mt-6">
