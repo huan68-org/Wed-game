@@ -11,7 +11,7 @@ async function handleResponse(response) {
 }
 
 export const register = async (username, password) => {
-    const response = await fetch(`${API_URL}/register`, {
+    const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -20,7 +20,7 @@ export const register = async (username, password) => {
 };
 
 export const login = async (username, password) => {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -93,7 +93,7 @@ export const searchUsers = async (apiKey, query) => {
 };
 
 export const validateApiKey = async (apiKey) => {
-    const response = await fetch(`${API_URL}/me`, {
+    const response = await fetch(`${API_URL}/auth/me`, {
         headers: { 'x-api-key': apiKey }
     }); 
     return handleResponse(response);
