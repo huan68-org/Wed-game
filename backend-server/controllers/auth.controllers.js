@@ -34,30 +34,26 @@ exports.login = async (req, res) => {
     }
 };
 
-// Email Verification
+// Verify Email
 exports.verifyEmail = async (req, res) => {
     try {
         const { token } = req.params;
         
-        if (!token) {
-            const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
-            return res.redirect(`${CLIENT_URL}/verification-status?success=false&error=missing`);
+        const result = await authService.verifyEmail(token);
+        
+        if (result.success) {
+            // ✅ SỬA: Chuyển về route đúng của Frontend
+            res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/verify?status=success&message=${encodeURIComponent('Tài khoản đã được kích hoạt thành công!')}`);
+        } else {
+            // ✅ SỬA: Chuyển về route đúng của Frontend
+            res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/verify?status=error&message=${encodeURIComponent(result.message)}`);
         }
-
-        await authService.verifyEmail(token);
-        
-        // Chuyển hướng đến frontend với trạng thái thành công
-        const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
-        res.redirect(`${CLIENT_URL}/verification-status?success=true`);
     } catch (error) {
-        console.error('Email verification error:', error);
-        
-        // Chuyển hướng đến frontend với trạng thái lỗi
-        const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
-        const errorType = error.message.includes('hết hạn') ? 'expired' : 'invalid';
-        res.redirect(`${CLIENT_URL}/verification-status?success=false&error=${errorType}`);
+        console.error('Verify email error:', error);
+        res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/verify?status=error&message=${encodeURIComponent('Lỗi server')}`);
     }
 };
+
 
 exports.resendVerificationEmail = async (req, res) => {
     try {

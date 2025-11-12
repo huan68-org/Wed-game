@@ -10,7 +10,7 @@ router.post('/logout', authMiddleware, authController.logout);
 router.post('/refresh', authController.refreshToken);
 
 // Email verification routes
-router.get('/verify/:token', authController.verifyEmail);
+router.get('/verify-email/:token', authController.verifyEmail);
 router.post('/resend-verification', authController.resendVerificationEmail);
 
 // Password reset routes
