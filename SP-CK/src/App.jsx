@@ -1,3 +1,5 @@
+// src/App.jsx
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -9,8 +11,7 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './components/dashboard/Dashboard';
 import VerificationStatus from './components/auth/VerificationStatus';
 import ResetPassword from './components/auth/ResetPassword';
-import CaroPage from './pages/CaroPage';
-import BattleshipPage from './pages/BattleshipPage';
+import MainApp from './MainApp';
 import { useAuth } from './context/AuthContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
@@ -37,6 +38,7 @@ const PublicRoute = ({ children }) => {
 const AppRoutes = () => {
     return (
         <Routes>
+            {/* Public Routes */}
             <Route 
                 path="/auth" 
                 element={
@@ -45,6 +47,10 @@ const AppRoutes = () => {
                     </PublicRoute>
                 } 
             />
+            <Route path="/verify" element={<VerificationStatus />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+            {/* Protected Routes */}
             <Route 
                 path="/dashboard" 
                 element={
@@ -53,24 +59,18 @@ const AppRoutes = () => {
                     </ProtectedRoute>
                 } 
             />
+
+            {/* Main App - Game Hub */}
             <Route 
-                path="/caro" 
+                path="/app" 
                 element={
                     <ProtectedRoute>
-                        <CaroPage />
+                        <MainApp />
                     </ProtectedRoute>
                 } 
             />
-            <Route 
-                path="/battleship" 
-                element={
-                    <ProtectedRoute>
-                        <BattleshipPage />
-                    </ProtectedRoute>
-                } 
-            />
-            <Route path="/verify" element={<VerificationStatus />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+            {/* Default Routes */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

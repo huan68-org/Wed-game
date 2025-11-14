@@ -1,4 +1,7 @@
+// src/components/dashboard/Dashboard.jsx
+
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import Header from '../header';
@@ -8,21 +11,14 @@ import History from '../history/History';
 import Friends from '../FriendsPage/FriendsPage';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-// Import các game components
-import SudokuGame from '../sodoku/SudokuGame';
-import CaroGame from '../caro/CaroGame';
-import BattleshipGame from '../battleship/BattleshipGame';
-import PacmanGame from '../PacmanGame/PacmanGame';
-import PuzzleGame from '../PuzzleGame/PuzzleGame';
-
 const Dashboard = () => {
     const { user, logout, isLoading } = useAuth();
     const { addNotification } = useNotifications();
+    const navigate = useNavigate();
     const [currentView, setCurrentView] = useState('home');
     const [isTransitioning, setIsTransitioning] = useState(false);
 
     useEffect(() => {
-        // Welcome notification khi user đăng nhập
         if (user) {
             addNotification({
                 type: 'success',
@@ -34,6 +30,30 @@ const Dashboard = () => {
     }, [user, addNotification]);
 
     const handleNavigate = (view) => {
+        console.log('Dashboard handleNavigate called with:', view); // Debug
+
+        // Danh sách các game keys
+        const gameKeys = [
+            'sudoku', 
+            'caro', 
+            'battleship', 
+            'pacman', 
+            'puzzle-game', 
+            'photobooth', 
+            'snake'
+        ];
+        
+        // Nếu là game key, chuyển sang MainApp
+        if (gameKeys.includes(view)) {
+            console.log('Navigating to game:', view); // Debug
+            navigate('/app', { 
+                state: { initialView: view },
+                replace: false 
+            });
+            return;
+        }
+
+        // Navigation thông thường trong Dashboard
         if (view === currentView) return;
         
         setIsTransitioning(true);
@@ -77,19 +97,6 @@ const Dashboard = () => {
                 return <History />;
             case 'friends':
                 return <Friends />;
-            
-            // Game views
-            case 'sudoku':
-                return <SudokuGame onBack={() => handleNavigate('games')} />;
-            case 'caro':
-                return <CaroGame onBack={() => handleNavigate('games')} />;
-            case 'battleship':
-                return <BattleshipGame onBack={() => handleNavigate('games')} />;
-            case 'pacman':
-                return <PacmanGame onBack={() => handleNavigate('games')} />;
-            case 'puzzle':
-                return <PuzzleGame onBack={() => handleNavigate('games')} />;
-            
             default:
                 return <Hero />;
         }
@@ -119,7 +126,6 @@ const Dashboard = () => {
                     transform: translateY(10px);
                 }
 
-                /* Scrollbar styling */
                 ::-webkit-scrollbar {
                     width: 8px;
                 }
@@ -139,7 +145,6 @@ const Dashboard = () => {
                     background: linear-gradient(135deg, #7c3aed, #db2777);
                 }
 
-                /* Background effects */
                 .dashboard-container::before {
                     content: '';
                     position: fixed;
@@ -155,7 +160,6 @@ const Dashboard = () => {
                     z-index: 0;
                 }
 
-                /* Floating particles */
                 .dashboard-container::after {
                     content: '';
                     position: fixed;
@@ -180,7 +184,6 @@ const Dashboard = () => {
                     to { transform: translateY(-150px); }
                 }
 
-                /* Content positioning */
                 .main-content {
                     position: relative;
                     z-index: 1;

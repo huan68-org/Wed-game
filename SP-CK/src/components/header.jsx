@@ -1,3 +1,5 @@
+// src/components/header.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import 'boxicons/css/boxicons.min.css';
 import { useNotifications } from '../context/NotificationContext';
@@ -43,161 +45,668 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    const handleNotificationClick = (notification) => {
-        removeNotification(notification.id);
-        if (notification.type === 'friend_request') {
-            onNavigate('friends');
-        }
-        setShowNotifications(false);
-    };
-
-    const handleNavClick = (e, view) => {
-        e.preventDefault();
-        onNavigate(view);
-        setIsMobileMenuOpen(false);
-    };
-
-    const isGameView = (view) => !['home', 'games', 'history', 'friends'].includes(view);
-
-    const navigationItems = [
-        { id: 'home', label: 'TRANG CHỦ', icon: 'bx-home-alt-2', gradient: 'from-purple-500 to-pink-500' },
-        { id: 'games', label: 'THƯ VIỆN GAME', icon: 'bx-game', gradient: 'from-blue-500 to-cyan-500' },
-        { id: 'history', label: 'LỊCH SỬ', icon: 'bx-history', gradient: 'from-green-500 to-teal-500' },
-        { id: 'friends', label: 'BẠN BÈ', icon: 'bx-group', gradient: 'from-orange-500 to-red-500' }
+    const navItems = [
+        { id: 'home', label: 'Trang Chủ', icon: 'bxs-home' },
+        { id: 'games', label: 'Trò Chơi', icon: 'bxs-joystick' },
+        { id: 'history', label: 'Lịch Sử', icon: 'bxs-time' },
+        { id: 'friends', label: 'Bạn Bè', icon: 'bxs-group' }
     ];
+
+    const getNotificationIcon = (type) => {
+        switch (type) {
+            case 'success': return 'bxs-check-circle';
+            case 'error': return 'bxs-error-circle';
+            case 'warning': return 'bxs-error-alt';
+            case 'info': return 'bxs-info-circle';
+            default: return 'bxs-bell';
+        }
+    };
+
+    const getNotificationColor = (type) => {
+        switch (type) {
+            case 'success': return '#10b981';
+            case 'error': return '#ef4444';
+            case 'warning': return '#f59e0b';
+            case 'info': return '#3b82f6';
+            default: return '#6b7280';
+        }
+    };
 
     return (
         <>
-            <div className="fixed top-0 left-0 w-full h-24 pointer-events-none z-40">
-                <div className="absolute inset-0 opacity-20 transition-all duration-700" style={{ background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(139, 92, 246, 0.3) 0%, transparent 50%)` }}></div>
-                <div className="absolute inset-0">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="absolute w-1 h-1 bg-purple-400 rounded-full animate-float opacity-60" style={{ left: `${10 + i * 12}%`, top: `${20 + Math.sin(i) * 30}%`, animationDelay: `${i * 0.5}s`, animationDuration: `${3 + i * 0.3}s` }}></div>
-                    ))}
-                </div>
-            </div>
-            <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-purple-500/20 shadow-2xl shadow-purple-500/10' : 'bg-transparent'}`}>
-                <div className="relative px-4 py-4 lg:px-20">
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-purple-900/20 to-black/40 backdrop-blur-xl rounded-2xl border border-white/10"></div>
-                    <div className="relative flex justify-between items-center">
-                        <div className="group cursor-pointer flex items-center gap-3" onClick={(e) => handleNavClick(e, 'home')}>
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
-                                <div className="relative bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-3 rounded-xl group-hover:scale-110 transition-all duration-300">
-                                    <i className="bx bx-game text-white text-2xl"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent group-hover:from-purple-400 group-hover:to-pink-400 transition-all duration-300">HUAN</h1>
-                            </div>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+                .cosmic-header {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    z-index: 1000;
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .cosmic-header.scrolled {
+                    background: rgba(15, 15, 25, 0.85);
+                    backdrop-filter: blur(30px) saturate(180%);
+                    border-bottom: 2px solid rgba(168, 85, 247, 0.3);
+                    box-shadow: 
+                        0 10px 40px rgba(0, 0, 0, 0.5),
+                        0 0 60px rgba(168, 85, 247, 0.2);
+                }
+
+                .header-content {
+                    max-width: 1800px;
+                    margin: 0 auto;
+                    padding: 20px 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 40px;
+                }
+
+                /* Logo */
+                .header-logo {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .header-logo:hover {
+                    transform: scale(1.05);
+                }
+
+                .logo-icon {
+                    width: 50px;
+                    height: 50px;
+                    background: linear-gradient(135deg, #a855f7, #ec4899);
+                    border-radius: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 28px;
+                    color: white;
+                    box-shadow: 0 5px 25px rgba(168, 85, 247, 0.5);
+                    animation: logoFloat 3s ease-in-out infinite;
+                }
+
+                @keyframes logoFloat {
+                    0%, 100% { transform: translateY(0) rotate(0deg); }
+                    50% { transform: translateY(-5px) rotate(5deg); }
+                }
+
+                .logo-text {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 24px;
+                    font-weight: 900;
+                    background: linear-gradient(135deg, #a855f7, #ec4899, #f97316);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    text-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+                }
+
+                /* Navigation */
+                .header-nav {
+                    display: flex;
+                    gap: 8px;
+                }
+
+                .nav-item {
+                    position: relative;
+                    padding: 12px 24px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 14px;
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: rgba(255, 255, 255, 0.7);
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    overflow: hidden;
+                }
+
+                .nav-item:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(168, 85, 247, 0.5);
+                    color: white;
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 20px rgba(168, 85, 247, 0.3);
+                }
+
+                .nav-item.active {
+                    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.3));
+                    border-color: rgba(168, 85, 247, 0.6);
+                    color: white;
+                    box-shadow: 0 5px 25px rgba(168, 85, 247, 0.4);
+                }
+
+                .nav-item i {
+                    font-size: 20px;
+                }
+
+                .nav-item-glow {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                    transform: translateX(-100%);
+                    transition: transform 0.6s ease;
+                }
+
+                .nav-item:hover .nav-item-glow {
+                    transform: translateX(100%);
+                }
+
+                /* Actions */
+                .header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                }
+
+                .action-button {
+                    position: relative;
+                    width: 48px;
+                    height: 48px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    color: white;
+                    font-size: 22px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .action-button:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(168, 85, 247, 0.5);
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 20px rgba(168, 85, 247, 0.3);
+                }
+
+                .notification-badge {
+                    position: absolute;
+                    top: -5px;
+                    right: -5px;
+                    min-width: 20px;
+                    height: 20px;
+                    background: linear-gradient(135deg, #ef4444, #f97316);
+                    border-radius: 10px;
+                    border: 2px solid rgba(15, 15, 25, 0.9);
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 11px;
+                    font-weight: 900;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0 5px;
+                    box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+                    animation: badgePulse 2s ease-in-out infinite;
+                }
+
+                @keyframes badgePulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                }
+
+                /* User Avatar */
+                .user-avatar-button {
+                    position: relative;
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 50%;
+                    border: 2px solid rgba(168, 85, 247, 0.5);
+                    cursor: pointer;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4);
+                }
+
+                .user-avatar-button:hover {
+                    border-color: rgba(168, 85, 247, 0.8);
+                    transform: scale(1.1);
+                    box-shadow: 0 8px 30px rgba(168, 85, 247, 0.6);
+                }
+
+                .user-avatar-button img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .user-status-dot {
+                    position: absolute;
+                    bottom: 2px;
+                    right: 2px;
+                    width: 12px;
+                    height: 12px;
+                    background: #10b981;
+                    border: 2px solid rgba(15, 15, 25, 0.9);
+                    border-radius: 50%;
+                    box-shadow: 0 0 10px #10b981;
+                    animation: statusPulse 2s ease-in-out infinite;
+                }
+
+                @keyframes statusPulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+
+                /* Dropdowns */
+                .dropdown-menu {
+                    position: absolute;
+                    top: calc(100% + 10px);
+                    right: 0;
+                    min-width: 320px;
+                    max-height: 500px;
+                    overflow-y: auto;
+                    background: rgba(15, 15, 25, 0.95);
+                    backdrop-filter: blur(30px) saturate(180%);
+                    border: 2px solid rgba(168, 85, 247, 0.3);
+                    border-radius: 20px;
+                    padding: 20px;
+                    box-shadow: 
+                        0 20px 60px rgba(0, 0, 0, 0.6),
+                        0 0 60px rgba(168, 85, 247, 0.3);
+                    animation: dropdownSlideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    z-index: 1000;
+                }
+
+                @keyframes dropdownSlideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px) scale(0.95);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                .dropdown-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    padding-bottom: 15px;
+                    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .dropdown-title {
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 18px;
+                    font-weight: 900;
+                    color: white;
+                }
+
+                .clear-all-btn {
+                    padding: 6px 12px;
+                    background: rgba(239, 68, 68, 0.2);
+                    border: 1px solid rgba(239, 68, 68, 0.3);
+                    border-radius: 8px;
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #ef4444;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .clear-all-btn:hover {
+                    background: rgba(239, 68, 68, 0.3);
+                    border-color: rgba(239, 68, 68, 0.5);
+                }
+
+                /* Notification Item */
+                .notification-item {
+                    display: flex;
+                    gap: 12px;
+                    padding: 15px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    margin-bottom: 10px;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                }
+
+                .notification-item:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                    border-color: rgba(168, 85, 247, 0.3);
+                    transform: translateX(5px);
+                }
+
+                .notification-icon {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 20px;
+                    color: white;
+                    flex-shrink: 0;
+                }
+
+                .notification-content {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .notification-title {
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: white;
+                    margin-bottom: 4px;
+                }
+
+                .notification-message {
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.6);
+                    line-height: 1.4;
+                }
+
+                .notification-time {
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-top: 4px;
+                }
+
+                /* User Menu */
+                .user-menu-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 15px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    margin-bottom: 8px;
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: white;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .user-menu-item:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-color: rgba(168, 85, 247, 0.5);
+                    transform: translateX(5px);
+                }
+
+                .user-menu-item.logout {
+                    background: rgba(239, 68, 68, 0.1);
+                    border-color: rgba(239, 68, 68, 0.3);
+                    color: #ef4444;
+                }
+
+                .user-menu-item.logout:hover {
+                    background: rgba(239, 68, 68, 0.2);
+                    border-color: rgba(239, 68, 68, 0.5);
+                }
+
+                .user-menu-item i {
+                    font-size: 20px;
+                }
+
+                /* Mobile Menu */
+                .mobile-menu-button {
+                    display: none;
+                    width: 48px;
+                    height: 48px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    color: white;
+                    font-size: 24px;
+                    cursor: pointer;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                @media (max-width: 1024px) {
+                    .header-nav {
+                        display: none;
+                    }
+
+                    .mobile-menu-button {
+                        display: flex;
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .header-content {
+                        padding: 15px 20px;
+                    }
+
+                    .logo-text {
+                        display: none;
+                    }
+
+                    .dropdown-menu {
+                        min-width: 280px;
+                    }
+                }
+
+                /* Empty State */
+                .empty-state {
+                    text-align: center;
+                    padding: 40px 20px;
+                }
+
+                .empty-state-icon {
+                    font-size: 60px;
+                    color: rgba(255, 255, 255, 0.2);
+                    margin-bottom: 15px;
+                }
+
+                .empty-state-text {
+                    font-family: 'Rajdhani', sans-serif;
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.5);
+                }
+            `}</style>
+
+            <header className={`cosmic-header ${isScrolled ? 'scrolled' : ''}`}>
+                <div className="header-content">
+                    {/* Logo */}
+                    <div className="header-logo" onClick={() => onNavigate('home')}>
+                        <div className="logo-icon">
+                            <i className='bx bxs-joystick-alt'></i>
                         </div>
-                        <nav className="hidden lg:flex items-center gap-10">
-                            {navigationItems.map((item) => {
-                                const isActive = currentView === item.id || (item.id === 'games' && isGameView(currentView));
-                                return (
-                                    <a key={item.id} href="#" onClick={(e) => handleNavClick(e, item.id)} className={`relative flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm tracking-wider transition-all duration-300 group ${isActive ? `text-white bg-gradient-to-r ${item.gradient} shadow-lg shadow-purple-500/25` : 'text-gray-300 hover:text-white'}`}>
-                                        <i className={`bx ${item.icon} text-lg`}></i>
-                                        <span>{item.label}</span>
-                                        <div className="absolute inset-0 bg-white rounded-xl opacity-0 group-hover:opacity-10 transition-all duration-300"></div>
-                                    </a>
-                                );
-                            })}
-                        </nav>
-                        <div className="flex items-center gap-4">
-                            <div className="relative" ref={notificationsRef}>
-                                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-3 text-gray-300 hover:text-white transition-all duration-300 hover:bg-white/10 rounded-xl group">
-                                    <i className="bx bx-bell text-xl group-hover:animate-bounce"></i>
-                                    {unreadCount > 0 && (
-                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
-                                            <span className="text-xs text-white font-bold">{unreadCount}</span>
-                                        </div>
-                                    )}
-                                </button>
-                                {showNotifications && (
-                                    <div className="absolute right-0 top-full mt-2 w-80 bg-black/90 backdrop-blur-xl border border-purple-500/30 rounded-2xl shadow-2xl shadow-purple-500/20 overflow-hidden">
-                                        <div className="p-4 border-b border-gray-700/50 flex justify-between items-center">
-                                            <h3 className="text-white font-bold flex items-center gap-2"><i className="bx bx-bell text-purple-400"></i>Thông báo</h3>
-                                            {notifications.length > 0 && (<button onClick={clearAll} className="text-xs text-gray-400 hover:text-white">Xóa tất cả</button>)}
-                                        </div>
-                                        <div className="max-h-80 overflow-y-auto">
-                                            {notifications.length > 0 ? (
-                                                notifications.map((notif) => (
-                                                    <div key={notif.id} onClick={() => handleNotificationClick(notif)} className="p-4 border-b border-gray-800/50 hover:bg-white/5 transition-colors cursor-pointer">
-                                                        <div className="flex items-start gap-3">
-                                                            <span className="text-2xl mt-1">{notif.type === 'friend_request' ? '👥' : '🎮'}</span>
-                                                            <div className="flex-1">
-                                                                <h4 className="text-white font-semibold text-sm">{notif.title}</h4>
-                                                                <p className="text-gray-400 text-xs mt-1">{notif.message}</p>
-                                                                <span className="text-purple-400 text-xs">{new Date(notif.timestamp).toLocaleTimeString('vi-VN')}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="p-4 text-center text-gray-500">Không có thông báo mới.</div>
-                                            )}
-                                        </div>
-                                    </div>
+                        <span className="logo-text">GAME HUB</span>
+                    </div>
+
+                    {/* Navigation */}
+                    <nav className="header-nav">
+                        {navItems.map(item => (
+                            <button
+                                key={item.id}
+                                className={`nav-item ${currentView === item.id ? 'active' : ''}`}
+                                onClick={() => onNavigate(item.id)}
+                            >
+                                <i className={`bx ${item.icon}`}></i>
+                                <span>{item.label}</span>
+                                <div className="nav-item-glow" />
+                            </button>
+                        ))}
+                    </nav>
+
+                    {/* Actions */}
+                    <div className="header-actions">
+                        {/* Notifications */}
+                        <div style={{ position: 'relative' }} ref={notificationsRef}>
+                            <button 
+                                className="action-button"
+                                onClick={() => setShowNotifications(!showNotifications)}
+                            >
+                                <i className='bx bxs-bell'></i>
+                                {unreadCount > 0 && (
+                                    <span className="notification-badge">{unreadCount}</span>
                                 )}
-                            </div>
-                            {user && (
-                                <div className="relative" ref={userMenuRef}>
-                                    <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-3 p-2 pr-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-2xl hover:from-purple-600/30 hover:to-pink-600/30 transition-all">
-                                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white font-bold text-lg">{user.username?.charAt(0).toUpperCase()}</div>
-                                        <div className="hidden md:block text-left">
-                                            <div className="text-white font-semibold text-sm">{user.username}</div>
-                                        </div>
-                                        <i className={`bx bx-chevron-down text-gray-400 transition-transform duration-300 ${showUserMenu ? 'rotate-180' : ''}`}></i>
-                                    </button>
-                                    {showUserMenu && (
-                                        <div className="absolute right-0 top-full mt-2 w-64 bg-black/90 backdrop-blur-xl border border-purple-500/30 rounded-2xl shadow-2xl shadow-purple-500/20 overflow-hidden">
-                                            <div className="p-2">
-                                                <button onClick={onLogout} className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all">
-                                                    <i className="bx bx-log-out"></i><span>Đăng xuất</span>
-                                                </button>
+                            </button>
+
+                            {showNotifications && (
+                                <div className="dropdown-menu">
+                                    <div className="dropdown-header">
+                                        <h3 className="dropdown-title">Thông Báo</h3>
+                                        {notifications.length > 0 && (                                            <button className="clear-all-btn" onClick={clearAll}>
+                                                Xóa Tất Cả
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {notifications.length === 0 ? (
+                                        <div className="empty-state">
+                                            <div className="empty-state-icon">
+                                                <i className='bx bxs-bell-off'></i>
                                             </div>
+                                            <p className="empty-state-text">Không có thông báo mới</p>
                                         </div>
+                                    ) : (
+                                        notifications.map(notif => (
+                                            <div 
+                                                key={notif.id}
+                                                className="notification-item"
+                                                onClick={() => removeNotification(notif.id)}
+                                            >
+                                                <div 
+                                                    className="notification-icon"
+                                                    style={{ background: getNotificationColor(notif.type) }}
+                                                >
+                                                    <i className={`bx ${getNotificationIcon(notif.type)}`}></i>
+                                                </div>
+                                                <div className="notification-content">
+                                                    <div className="notification-title">{notif.title}</div>
+                                                    <div className="notification-message">{notif.message}</div>
+                                                    <div className="notification-time">
+                                                        {new Date(notif.timestamp).toLocaleTimeString('vi-VN')}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
                                     )}
                                 </div>
                             )}
-                            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-3 text-gray-300 hover:text-white transition-colors hover:bg-white/10 rounded-xl">
-                                <i className={`bx ${isMobileMenuOpen ? 'bx-x' : 'bx-menu'} text-2xl transition-all duration-300`}></i>
-                            </button>
                         </div>
+
+                        {/* User Menu */}
+                        <div style={{ position: 'relative' }} ref={userMenuRef}>
+                            <button 
+                                className="user-avatar-button"
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                            >
+                                <img 
+                                    src={user?.avatar || '/default-avatar.png'} 
+                                    alt="Avatar"
+                                />
+                                <div className="user-status-dot" />
+                            </button>
+
+                            {showUserMenu && (
+                                <div className="dropdown-menu">
+                                    <div className="dropdown-header">
+                                        <h3 className="dropdown-title">{user?.username || 'Guest'}</h3>
+                                    </div>
+
+                                    <div className="user-menu-item" onClick={() => onNavigate('profile')}>
+                                        <i className='bx bxs-user-circle'></i>
+                                        <span>Hồ Sơ</span>
+                                    </div>
+
+                                    <div className="user-menu-item" onClick={() => onNavigate('settings')}>
+                                        <i className='bx bxs-cog'></i>
+                                        <span>Cài Đặt</span>
+                                    </div>
+
+                                    <div className="user-menu-item" onClick={() => onNavigate('achievements')}>
+                                        <i className='bx bxs-medal'></i>
+                                        <span>Thành Tích</span>
+                                    </div>
+
+                                    <div className="user-menu-item" onClick={() => onNavigate('wallet')}>
+                                        <i className='bx bxs-wallet'></i>
+                                        <span>Ví</span>
+                                    </div>
+
+                                    <div className="user-menu-item logout" onClick={onLogout}>
+                                        <i className='bx bxs-log-out'></i>
+                                        <span>Đăng Xuất</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Mobile Menu Button */}
+                        <button 
+                            className="mobile-menu-button"
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        >
+                            <i className={`bx ${isMobileMenuOpen ? 'bx-x' : 'bx-menu'}`}></i>
+                        </button>
                     </div>
                 </div>
+
+                {/* Mobile Menu Overlay */}
+                {isMobileMenuOpen && (
+                    <div 
+                        style={{
+                            position: 'fixed',
+                            top: '80px',
+                            left: 0,
+                            right: 0,
+                            background: 'rgba(15, 15, 25, 0.98)',
+                            backdropFilter: 'blur(30px)',
+                            borderTop: '2px solid rgba(168, 85, 247, 0.3)',
+                            padding: '20px',
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+                            animation: 'dropdownSlideIn 0.3s ease-out',
+                            zIndex: 999
+                        }}
+                    >
+                        {navItems.map(item => (
+                            <button
+                                key={item.id}
+                                className={`nav-item ${currentView === item.id ? 'active' : ''}`}
+                                onClick={() => {
+                                    onNavigate(item.id);
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    marginBottom: '10px',
+                                    justifyContent: 'flex-start'
+                                }}
+                            >
+                                <i className={`bx ${item.icon}`}></i>
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
             </header>
-            {isMobileMenuOpen && (
-                <div className="lg:hidden fixed inset-0 z-40 bg-black/90 backdrop-blur-xl">
-                    <div className="flex flex-col h-full pt-24 pb-8">
-                        <nav className="flex-1 px-8">
-                            <div className="space-y-4">
-                                {navigationItems.map((item) => {
-                                    const isActive = currentView === item.id || (item.id === 'games' && isGameView(currentView));
-                                    return (
-                                        <a key={item.id} href="#" onClick={(e) => handleNavClick(e, item.id)} className={`flex items-center gap-4 p-4 rounded-2xl font-bold text-lg transition-all duration-300 ${isActive ? `text-white bg-gradient-to-r ${item.gradient}` : 'text-gray-300 hover:text-white hover:bg-white/10'}`}>
-                                            <i className={`bx ${item.icon} text-2xl`}></i>
-                                            <span>{item.label}</span>
-                                        </a>
-                                    );
-                                })}
-                            </div>
-                        </nav>
-                        <div className="px-8 space-y-4">
-                            <button onClick={onLogout} className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-4 rounded-2xl font-bold text-lg">
-                                <i className="bx bx-log-out mr-2"></i>ĐĂNG XUẤT
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            <style jsx>{`
-                @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; } 50% { transform: translateY(-10px) rotate(180deg); opacity: 1; } }
-                .animate-float { animation: float var(--duration, 4s) ease-in-out infinite; }
-            `}</style>
-            <div className="h-28 lg:h-40"></div>
         </>
     );
 };
 
 export default Header;
+
+                                            
