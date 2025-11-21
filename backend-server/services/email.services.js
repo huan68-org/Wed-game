@@ -74,8 +74,9 @@ class EmailService {
     }
 
     async sendPasswordResetEmail(email, username, resetToken) {
-        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
-        const resetUrl = `${BACKEND_URL}/api/auth/reset-password/${resetToken}`;
+        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080'; 
+        const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+        const resetUrl = `${CLIENT_URL}/reset-password/${resetToken}`;
 
         const mailOptions = {
             from: EMAIL_USER,

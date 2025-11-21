@@ -21,6 +21,6 @@ router.post('/reset-password/:token', authController.resetPassword);
 // === THAY ĐỔI Ở ĐÂY ===
 // Sử dụng authMiddleware (JWT Token) thay vì apiKeyMiddleware
 router.get('/me', authMiddleware, authController.getMe);
-// ========================
+
 
 module.exports = router;

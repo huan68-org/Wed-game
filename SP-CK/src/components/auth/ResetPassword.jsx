@@ -32,18 +32,19 @@ const ResetPassword = () => {
         }
     }, [password, confirmPassword]);
 
+    const BACKEND_URL = 'http://localhost:8080';
     const validateToken = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/auth/validate-reset-token/${token}`);
+            const response = await fetch(`${BACKEND_URL}/api/auth/reset-check/${token}`);
             const data = await response.json();
             
-            if (data.success) {
+            if (response.ok) {
                 setTokenValid(true);
             } else {
                 setTokenValid(false);
-                setError('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+                setError(data.message || 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
             }
-        } catch (err) {
+        } catch (error) {
             setTokenValid(false);
             setError('Không thể xác thực link đặt lại mật khẩu');
         }
@@ -73,7 +74,7 @@ const ResetPassword = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3000/api/auth/reset-password', {
+            const response = await fetch(`${BACKEND_URL}/api/auth/reset-password/${token}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, newPassword: password })
@@ -81,7 +82,7 @@ const ResetPassword = () => {
 
             const data = await response.json();
 
-            if (data.success) {
+            if (response.ok) {
                 setSuccess('Đặt lại mật khẩu thành công! Đang chuyển hướng...');
                 setTimeout(() => {
                     navigate('/auth');

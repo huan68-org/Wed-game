@@ -1,4 +1,4 @@
-// SP-CK/src/context/AuthProvider.jsx
+// src/context/AuthProvider.jsx
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as api from '../services/api';
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     // ============================================
     // 📜 Hàm lấy lịch sử (giữ nguyên)
     // ============================================
-    const fetchHistory = async (key) => {
+    const fetchHistory = async (key) => { 
         if (!key) return;
         try {
             const historyData = await api.getHistory(key);
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
                 setIsLoading(false);
                 return;
             }
-
+            
             try {
                 // === BƯỚC 2: Xác thực bằng JWT Token ===
                 console.log('🔐 [AuthContext] Đang xác thực Access Token...');
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
             const response = await api.register(username, email, password);
             return {
                 success: true,
-                message: response.message || 'Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.'
+                message: response.message || 'Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.' 
             };
         } catch (error) {
             return {

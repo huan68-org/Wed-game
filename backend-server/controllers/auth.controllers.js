@@ -35,25 +35,24 @@ exports.login = async (req, res) => {
 };
 
 // Verify Email
+// ✅ SỬA ĐỔI trong auth.controllers.js
 exports.verifyEmail = async (req, res) => {
+    const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
     try {
         const { token } = req.params;
         
-        const result = await authService.verifyEmail(token);
+        const result = await authService.verifyEmail(token); // Nếu thành công, result = { message: '...' }
         
-        if (result.success) {
-            // ✅ SỬA: Chuyển về route đúng của Frontend
-            res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/verify?status=success&message=${encodeURIComponent('Tài khoản đã được kích hoạt thành công!')}`);
-        } else {
-            // ✅ SỬA: Chuyển về route đúng của Frontend
-            res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/verify?status=error&message=${encodeURIComponent(result.message)}`);
-        }
+        res.redirect(`${CLIENT_URL}/verify?status=success&message=${encodeURIComponent(result.message || 'Tài khoản đã được kích hoạt thành công!')}`);
+
     } catch (error) {
         console.error('Verify email error:', error);
-        res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/verify?status=error&message=${encodeURIComponent('Lỗi server')}`);
+        const errorMessage = error.message || 'Lỗi server không xác định';
+        res.redirect(`${CLIENT_URL}/verify?status=error&message=${encodeURIComponent(errorMessage)}`);
     }
 };
 
+// Resend Verification
 
 exports.resendVerificationEmail = async (req, res) => {
     try {

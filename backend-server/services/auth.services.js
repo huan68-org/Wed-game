@@ -151,7 +151,7 @@ exports.verifyEmail = async (token) => {
         user.verificationToken = null;
         await user.save();
 
-        return { message: 'Tài khoản đã được xác minh thành công!' };
+        return { success: true, message: 'Tài khoản đã được xác minh thành công!' };
 
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
