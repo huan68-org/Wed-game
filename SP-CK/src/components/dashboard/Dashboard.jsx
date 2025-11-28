@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import Header from '../header';
 import Hero from '../hero';
-import Games from '../Game/Games';
+import GameLibrary from '../Game/GameLibrary';  // ✅ SỬA: Import GameLibrary thay vì Games
 import History from '../history/History';
 import Friends from '../FriendsPage/FriendsPage';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -30,22 +30,23 @@ const Dashboard = () => {
     }, [user, addNotification]);
 
     const handleNavigate = (view) => {
-        console.log('Dashboard handleNavigate called with:', view); // Debug
+        console.log('🎮 Dashboard handleNavigate called with:', view);
 
         // Danh sách các game keys
         const gameKeys = [
             'sudoku', 
             'caro', 
-            'battleship', 
+            'battleship',
+            'chess',
             'pacman', 
-            'puzzle-game', 
+            'puzzle', 
             'photobooth', 
             'snake'
         ];
         
         // Nếu là game key, chuyển sang MainApp
         if (gameKeys.includes(view)) {
-            console.log('Navigating to game:', view); // Debug
+            console.log('🎯 Navigating to game:', view);
             navigate('/app', { 
                 state: { initialView: view },
                 replace: false 
@@ -90,15 +91,20 @@ const Dashboard = () => {
 
         switch (currentView) {
             case 'home':
-                return <Hero />;
+                return <Hero onNavigate={handleNavigate} />;
+            
             case 'games':
-                return <Games onNavigate={handleNavigate} />;
+                // ✅ SỬA: Dùng GameLibrary và truyền onPlay prop
+                return <GameLibrary onPlay={handleNavigate} />;
+            
             case 'history':
                 return <History />;
+            
             case 'friends':
                 return <Friends />;
+            
             default:
-                return <Hero />;
+                return <Hero onNavigate={handleNavigate} />;
         }
     };
 

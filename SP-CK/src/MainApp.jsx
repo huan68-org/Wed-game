@@ -11,35 +11,8 @@ import { HistoryDisplay } from './components/main-function/history';
 import { gameList } from './GameList';
 import ChatTray from './components/chat/ChatTray.jsx';
 import GameInviteManager from './components/main-function/GameInviteManager.jsx';
-
-const GameCard = ({ game, onPlay }) => (
-    <div 
-        className="group relative cursor-pointer overflow-hidden rounded-lg shadow-lg transition-transform transform hover:scale-105" 
-        onClick={() => onPlay(game.key)}
-    >
-        <img src={game.imageSrc} alt={game.name} className="w-full h-48 object-cover" />
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            <h3 className="text-2xl font-bold text-white text-center">{game.name}</h3>
-            <p className="text-gray-300 text-center mt-2">{game.description}</p>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 group-hover:opacity-0 transition-opacity">
-            <h3 className="text-xl font-bold text-white text-center truncate">{game.name}</h3>
-        </div>
-    </div>
-);
-
-const GameLibrary = ({ onPlay }) => (
-    <div className="w-full bg-gray-900 min-h-screen p-8">
-        <div className="max-w-7xl mx-auto">
-            <h2 className="text-4xl font-bold text-white mb-8 text-center">Thư Viện Game</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {gameList.map(game => (
-                    <GameCard key={game.key} game={game} onPlay={onPlay} />
-                ))}
-            </div>
-        </div>
-    </div>
-);
+import GameLibrary from './components/Game/GameLibrary';
+import ShopPage from './pages/ShopPage'; // ✅ ĐÃ IMPORT
 
 const MainApp = () => {
     const { user, logout } = useAuth();
@@ -49,11 +22,11 @@ const MainApp = () => {
 
     // Nhận initialView từ navigation state
     useEffect(() => {
-        console.log('MainApp location.state:', location.state); // Debug
+        console.log('📍 MainApp location.state:', location.state);
         
         if (location.state?.initialView) {
             const gameKey = location.state.initialView;
-            console.log('Setting initial view to:', gameKey); // Debug
+            console.log('🎯 Setting initial view to:', gameKey);
             setCurrentView(gameKey);
             
             // Clear state để tránh re-render không cần thiết
@@ -62,8 +35,11 @@ const MainApp = () => {
     }, [location.state]);
 
     const navigateTo = (view) => {
-        console.log('MainApp navigateTo:', view); // Debug
+        console.log('🎮 MainApp navigateTo:', view);
         setCurrentView(view);
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleBackToDashboard = () => {
@@ -71,13 +47,38 @@ const MainApp = () => {
     };
 
     const renderContent = () => {
-        console.log('Current view:', currentView); // Debug
+        console.log('📺 Current view:', currentView);
         
-        // Tìm game component từ gameList
+        // ✅ QUAN TRỌNG: Check các view đặc biệt TRƯỚC
+        switch (currentView) {
+            case 'home':
+                console.log('✅ Rendering HomePage');
+                return <HomePage onNavigate={navigateTo} />;
+            
+            case 'games':
+                console.log('✅ Rendering GameLibrary');
+                return <GameLibrary onPlay={navigateTo} />;
+            
+            case 'shop': // ✅ THÊM CASE NÀY
+                console.log('✅ Rendering ShopPage');
+                return <ShopPage />;
+            
+            case 'history':
+                console.log('✅ Rendering HistoryDisplay');
+                return <HistoryDisplay onBack={() => navigateTo('home')} />;
+            
+            case 'friends':
+                console.log('✅ Rendering FriendsPage');
+                return <FriendsPage />;
+        }
+        
+        // ✅ SAU ĐÓ: Check xem có phải game component không
         const gameData = gameList.find(game => game.key === currentView);
         
         if (gameData && gameData.Component) {
             const ActiveGameComponent = gameData.Component;
+            
+            console.log('🎲 Rendering game component:', gameData.name);
             
             return (
                 <Suspense fallback={
@@ -92,19 +93,10 @@ const MainApp = () => {
                 </Suspense>
             );
         }
-
-        // Các view khác
-        switch (currentView) {
-            case 'games': 
-                return <GameLibrary onPlay={navigateTo} />;
-            case 'history': 
-                return <HistoryDisplay onBack={() => navigateTo('home')} />;
-            case 'friends': 
-                return <FriendsPage />;
-            case 'home': 
-            default: 
-                return <HomePage />;
-        }
+        
+        // ✅ CUỐI CÙNG: Nếu không tìm thấy gì, về HomePage
+        console.warn('⚠️ Unknown view:', currentView, '- Rendering HomePage as fallback');
+        return <HomePage onNavigate={navigateTo} />;
     };
 
     return (

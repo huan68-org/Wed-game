@@ -45,6 +45,7 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
     const navItems = [
         { id: 'home', label: 'Trang Chủ', icon: 'bxs-home' },
         { id: 'games', label: 'Trò Chơi', icon: 'bxs-joystick' },
+        { id: 'shop', label: 'Shop', icon: 'bx-shopping-bag' }, // ✅ ADDED
         { id: 'history', label: 'Lịch Sử', icon: 'bxs-time' },
         { id: 'friends', label: 'Bạn Bè', icon: 'bxs-group' }
     ];
