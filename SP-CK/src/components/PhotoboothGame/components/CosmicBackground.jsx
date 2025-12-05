@@ -6,7 +6,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 
-const CosmicBackground = ({ intensity = 1, speed = 1 }) => {
+const CosmicBackground = ({ intensity = 1.5, speed = 0.8 }) => {
     const containerRef = useRef(null);
     const sceneRef = useRef(null);
     const rendererRef = useRef(null);
@@ -26,187 +26,240 @@ const CosmicBackground = ({ intensity = 1, speed = 1 }) => {
             0.1,
             1000
         );
-        camera.position.z = 5;
+        camera.position.z = 50;
 
         // Renderer
-        const renderer = new THREE.WebGLRenderer({ 
-            antialias: true, 
-            alpha: true 
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
         });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         containerRef.current.appendChild(renderer.domElement);
         rendererRef.current = renderer;
 
         // Post-processing
         const composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
 
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.5,
+            intensity * 1.5,
             0.4,
             0.85
         );
         composer.addPass(bloomPass);
 
         // ===== STARS =====
-        const starGeometry = new THREE.BufferGeometry();
-        const starCount = 15000;
-        const starPositions = new Float32Array(starCount * 3);
-        const starColors = new Float32Array(starCount * 3);
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 5000;
+        const positions = new Float32Array(starCount * 3);
+        const colors = new Float32Array(starCount * 3);
+        const sizes = new Float32Array(starCount);
 
-        for (let i = 0; i < starCount * 3; i += 3) {
-            starPositions[i] = (Math.random() - 0.5) * 100;
-            starPositions[i + 1] = (Math.random() - 0.5) * 100;
-            starPositions[i + 2] = (Math.random() - 0.5) * 100;
+        for (let i = 0; i < starCount; i++) {
+            const i3 = i * 3;
+            
+            // Positions
+            positions[i3] = (Math.random() - 0.5) * 200;
+            positions[i3 + 1] = (Math.random() - 0.5) * 200;
+            positions[i3 + 2] = (Math.random() - 0.5) * 200;
 
-            const color = new THREE.Color();
-            color.setHSL(Math.random(), 0.8, 0.7);
-            starColors[i] = color.r;
-            starColors[i + 1] = color.g;
-            starColors[i + 2] = color.b;
+            // Colors (purple, pink, blue spectrum)
+            const colorChoice = Math.random();
+            if (colorChoice < 0.33) {
+                // Purple
+                colors[i3] = 0.54 + Math.random() * 0.2;
+                colors[i3 + 1] = 0.36 + Math.random() * 0.2;
+                colors[i3 + 2] = 0.96;
+            } else if (colorChoice < 0.66) {
+                // Pink
+                colors[i3] = 0.93;
+                colors[i3 + 1] = 0.28 + Math.random() * 0.2;
+                colors[i3 + 2] = 0.60 + Math.random() * 0.2;
+            } else {
+                // Blue
+                colors[i3] = 0.23 + Math.random() * 0.2;
+                colors[i3 + 1] = 0.51 + Math.random() * 0.2;
+                colors[i3 + 2] = 0.96;
+            }
+
+            // Sizes
+            sizes[i] = Math.random() * 2 + 0.5;
         }
 
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        starsGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-        const starMaterial = new THREE.PointsMaterial({
-            size: 0.1,
+        const starsMaterial = new THREE.PointsMaterial({
+            size: 0.8,
+            sizeAttenuation: true,
             vertexColors: true,
             transparent: true,
             opacity: 0.8,
             blending: THREE.AdditiveBlending
         });
 
-        const stars = new THREE.Points(starGeometry, starMaterial);
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
         scene.add(stars);
 
         // ===== NEBULA CLOUDS =====
-        const nebulaGeometry = new THREE.BufferGeometry();
-        const nebulaCount = 3000;
-        const nebulaPositions = new Float32Array(nebulaCount * 3);
-        const nebulaColors = new Float32Array(nebulaCount * 3);
+        const nebulaGroup = new THREE.Group();
+        
+        for (let i = 0; i < 8; i++) {
+            const nebulaGeometry = new THREE.SphereGeometry(15, 32, 32);
+            const nebulaMaterial = new THREE.MeshBasicMaterial({
+                color: i % 3 === 0 ? 0x8b5cf6 : i % 3 === 1 ? 0xec4899 : 0x3b82f6,
+                transparent: true,
+                opacity: 0.1,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+            nebula.position.set(
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100
+            );
+            nebula.scale.set(
+                Math.random() * 2 + 1,
+                Math.random() * 2 + 1,
+                Math.random() * 2 + 1
+            );
+            
+            nebulaGroup.add(nebula);
+        }
+        
+        scene.add(nebulaGroup);
 
-        for (let i = 0; i < nebulaCount * 3; i += 3) {
-            nebulaPositions[i] = (Math.random() - 0.5) * 80;
-            nebulaPositions[i + 1] = (Math.random() - 0.5) * 80;
-            nebulaPositions[i + 2] = (Math.random() - 0.5) * 80;
+        // ===== COSMIC RINGS =====
+        const ringGroup = new THREE.Group();
+        
+        for (let i = 0; i < 5; i++) {
+            const ringGeometry = new THREE.TorusGeometry(20 + i * 10, 0.3, 16, 100);
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: i % 2 === 0 ? 0x8b5cf6 : 0xec4899,
+                transparent: true,
+                opacity: 0.3,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+            ring.rotation.y = (Math.random() - 0.5) * 0.5;
+            
+            ringGroup.add(ring);
+        }
+        
+        ringGroup.position.z = -30;
+        scene.add(ringGroup);
 
-            const hue = Math.random() * 0.3 + 0.5; // Purple to pink
-            const color = new THREE.Color();
-            color.setHSL(hue, 1, 0.6);
-            nebulaColors[i] = color.r;
-            nebulaColors[i + 1] = color.g;
-            nebulaColors[i + 2] = color.b;
+        // ===== FLOATING PARTICLES =====
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particleCount = 1000;
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleColors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            const i3 = i * 3;
+            particlePositions[i3] = (Math.random() - 0.5) * 150;
+            particlePositions[i3 + 1] = (Math.random() - 0.5) * 150;
+            particlePositions[i3 + 2] = (Math.random() - 0.5) * 150;
+
+            // Bright colors
+            particleColors[i3] = 0.8 + Math.random() * 0.2;
+            particleColors[i3 + 1] = 0.4 + Math.random() * 0.4;
+            particleColors[i3 + 2] = 1;
         }
 
-        nebulaGeometry.setAttribute('position', new THREE.BufferAttribute(nebulaPositions, 3));
-        nebulaGeometry.setAttribute('color', new THREE.BufferAttribute(nebulaColors, 3));
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
-        const nebulaMaterial = new THREE.PointsMaterial({
-            size: 2,
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 1.5,
             vertexColors: true,
             transparent: true,
-            opacity: 0.3,
+            opacity: 0.6,
             blending: THREE.AdditiveBlending
         });
 
-        const nebula = new THREE.Points(nebulaGeometry, nebulaMaterial);
-        scene.add(nebula);
+        const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particles);
 
-        // ===== ROTATING RINGS =====
-        const createRing = (radius, color, thickness) => {
-            const geometry = new THREE.TorusGeometry(radius, thickness, 16, 100);
-            const material = new THREE.MeshBasicMaterial({
-                color: color,
-                transparent: true,
-                opacity: 0.3,
-                wireframe: true
-            });
-            const ring = new THREE.Mesh(geometry, material);
-            return ring;
-        };
-
-        const ring1 = createRing(8, 0x8b5cf6, 0.05);
-        ring1.rotation.x = Math.PI / 4;
-        scene.add(ring1);
-
-        const ring2 = createRing(10, 0xec4899, 0.05);
-        ring2.rotation.y = Math.PI / 3;
-        scene.add(ring2);
-
-        const ring3 = createRing(12, 0x3b82f6, 0.05);
-        ring3.rotation.z = Math.PI / 6;
-        scene.add(ring3);
-
-        // ===== FLOATING ORBS =====
-        const orbs = [];
-        for (let i = 0; i < 20; i++) {
-            const orbGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+        // ===== GLOWING ORBS =====
+        const orbGroup = new THREE.Group();
+        
+        for (let i = 0; i < 15; i++) {
+            const orbGeometry = new THREE.SphereGeometry(Math.random() * 2 + 0.5, 32, 32);
             const orbMaterial = new THREE.MeshBasicMaterial({
-                color: new THREE.Color().setHSL(Math.random(), 1, 0.6),
+                color: Math.random() > 0.5 ? 0x8b5cf6 : 0xec4899,
                 transparent: true,
-                opacity: 0.6
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
             });
-            const orb = new THREE.Mesh(orbGeometry, orbMaterial);
             
+            const orb = new THREE.Mesh(orbGeometry, orbMaterial);
             orb.position.set(
-                (Math.random() - 0.5) * 30,
-                (Math.random() - 0.5) * 30,
-                (Math.random() - 0.5) * 30
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100
             );
             
+            // Store initial position for animation
             orb.userData = {
-                velocity: new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.02,
-                    (Math.random() - 0.5) * 0.02,
-                    (Math.random() - 0.5) * 0.02
-                )
+                initialY: orb.position.y,
+                floatSpeed: Math.random() * 0.5 + 0.5,
+                floatRange: Math.random() * 5 + 3
             };
             
-            orbs.push(orb);
-            scene.add(orb);
+            orbGroup.add(orb);
         }
+        
+        scene.add(orbGroup);
 
         // ===== ANIMATION =====
         let time = 0;
         const animate = () => {
-            animationRef.current = requestAnimationFrame(animate);
             time += 0.001 * speed;
 
             // Rotate stars
             stars.rotation.y += 0.0002 * speed;
             stars.rotation.x += 0.0001 * speed;
 
-            // Rotate nebula
-            nebula.rotation.y -= 0.0003 * speed;
-            nebula.rotation.z += 0.0001 * speed;
-
-            // Rotate rings
-            ring1.rotation.z += 0.002 * speed;
-            ring2.rotation.x += 0.003 * speed;
-            ring3.rotation.y += 0.001 * speed;
-
-            // Animate orbs
-            orbs.forEach(orb => {
-                orb.position.add(orb.userData.velocity);
-                
-                // Bounce back if out of bounds
-                if (Math.abs(orb.position.x) > 15) orb.userData.velocity.x *= -1;
-                if (Math.abs(orb.position.y) > 15) orb.userData.velocity.y *= -1;
-                if (Math.abs(orb.position.z) > 15) orb.userData.velocity.z *= -1;
-
-                // Pulse effect
-                orb.scale.setScalar(1 + Math.sin(time * 2 + orb.position.x) * 0.2);
+            // Animate nebula
+            nebulaGroup.children.forEach((nebula, index) => {
+                nebula.rotation.x += 0.0005 * speed;
+                nebula.rotation.y += 0.0003 * speed;
+                nebula.material.opacity = 0.1 + Math.sin(time * 2 + index) * 0.05;
             });
 
-            // Camera movement
+            // Rotate rings
+            ringGroup.rotation.z += 0.001 * speed;
+            ringGroup.children.forEach((ring, index) => {
+                ring.rotation.z += (0.002 + index * 0.0005) * speed;
+            });
+
+            // Animate particles
+            particles.rotation.y += 0.0003 * speed;
+            particles.rotation.x += 0.0002 * speed;
+
+            // Animate orbs
+            orbGroup.children.forEach((orb) => {
+                const { initialY, floatSpeed, floatRange } = orb.userData;
+                orb.position.y = initialY + Math.sin(time * floatSpeed) * floatRange;
+                orb.rotation.y += 0.01 * speed;
+                orb.material.opacity = 0.6 + Math.sin(time * 3) * 0.2;
+            });
+
+            // Camera subtle movement
             camera.position.x = Math.sin(time * 0.5) * 2;
-            camera.position.y = Math.cos(time * 0.3) * 1;
-            camera.lookAt(scene.position);
+            camera.position.y = Math.cos(time * 0.3) * 2;
+            camera.lookAt(0, 0, 0);
 
             composer.render();
+            animationRef.current = requestAnimationFrame(animate);
         };
 
         animate();
@@ -231,10 +284,27 @@ const CosmicBackground = ({ intensity = 1, speed = 1 }) => {
                 containerRef.current.removeChild(renderer.domElement);
             }
             renderer.dispose();
-            starGeometry.dispose();
-            starMaterial.dispose();
-            nebulaGeometry.dispose();
-            nebulaMaterial.dispose();
+            
+            // Dispose geometries and materials
+            starsGeometry.dispose();
+            starsMaterial.dispose();
+            particlesGeometry.dispose();
+            particlesMaterial.dispose();
+            
+            nebulaGroup.children.forEach(child => {
+                child.geometry.dispose();
+                child.material.dispose();
+            });
+            
+            ringGroup.children.forEach(child => {
+                child.geometry.dispose();
+                child.material.dispose();
+            });
+            
+            orbGroup.children.forEach(child => {
+                child.geometry.dispose();
+                child.material.dispose();
+            });
         };
     }, [intensity, speed]);
 
