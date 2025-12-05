@@ -23,6 +23,7 @@ const friendRoutes = require('./routes/friend.routes');
 const chatRoutes = require('./routes/chat.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const shopRoutes = require("./routes/shop.route");
+const gameRoutes = require("./routes/game.route");
 
 // Import game logic (giữ nguyên)
 const { handleCaroEvents, caroGames, createCaroGame, resetGame: resetCaroGame } = require('./game-logic/caro.js');
@@ -71,7 +72,7 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use("/api/shop", shopRoutes);
-
+app.use("/api/game", gameRoutes);
 // WebSocket upgrade handler (giữ nguyên)
 server.on('upgrade', async (request, socket, head) => {
     const { query } = url.parse(request.url, true);

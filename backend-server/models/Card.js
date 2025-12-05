@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
-const CardSchema = new mongoose.Schema({
-    name: String,
-    rarity: { type: String, enum: ["common", "rare", "epic", "legendary"] },
-    image: String
-});
+const cardSchema = new Schema({
+    name: { type: String, required: true },
+    image: { type: String, required: true },
+    attack: { type: Number, default: 0 },
+    defense: { type: Number, default: 0 },
+    description: { type: String }
+}, { timestamps: true });
 
-module.exports = mongoose.model("Card", CardSchema);
+module.exports = mongoose.model("Card", cardSchema);
