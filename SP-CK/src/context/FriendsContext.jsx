@@ -1,17 +1,25 @@
+// src/context/FriendsContext.jsx
+
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as  api from '../services/api';
-import websocketService from '../services/websocketService';
-import { useAuth } from './AuthContext';
+import * as api from '../services/api'; // Giả định đây là file chứa các hàm fetch API (getFriends, sendFriendRequest,...)
+import websocketService from '../services/websocketService'; // Giả định đây là service quản lý WebSocket
+import { useAuth } from './AuthContext'; // Hook để lấy apiKey, isAuthenticated, và handleTokenRefresh
 
 const FriendsContext = createContext(null);
 
 export const FriendsProvider = ({ children }) => {
-    const { apiKey, isAuthenticated } = useAuth();
+    // Lấy các giá trị cần thiết từ AuthContext
+    const { apiKey, isAuthenticated, handleTokenRefresh } = useAuth();
+    
     const [friends, setFriends] = useState([]);
-    const [requests, setRequests] = useState([]);
-    const [onlineFriends, setOnlineFriends] = useState(new Set());
+    const [requests, setRequests] = useState([]); // Chứa cả lời mời đã gửi và lời mời đã nhận
+    const [onlineFriends, setOnlineFriends] = useState(new Set()); // Set các username đang online
 
-    const fetchAllFriendData = useCallback(async () => {
+    // ==========================================================
+    // 🔄 HÀM LẤY DỮ LIỆU BẠN BÈ (Xử lý 401/Token Hết Hạn)
+    // ==========================================================
+    const fetchAllFriendData = useCallback(async (retryCount = 0) => {
+        // Thoát nếu chưa xác thực hoặc không có API Key
         if (!isAuthenticated || !apiKey) {
             setFriends([]);
             setRequests([]);
@@ -22,93 +30,140 @@ export const FriendsProvider = ({ children }) => {
         try {
             console.log("[FriendsContext] Đang tải lại toàn bộ dữ liệu bạn bè...");
             const allRelations = await api.getFriends(apiKey);
-            setFriends(allRelations.filter(r => r.status === 'friends'));
-            setRequests(allRelations.filter(r => r.status !== 'friends')); // Bao gồm cả 'sent' và 'pending'
             
-            // Yêu cầu danh sách online sau khi đã có danh sách bạn bè
-            if (websocketService.isConnected()) {
-                 websocketService.send('friend:get_initial_online_list');
-            }
+            // Lọc dữ liệu theo trạng thái (Giả định trạng thái là 'friends', 'pending_sent', 'pending_received')
+            setFriends(allRelations.filter(r => r.status === 'friends'));
+            setRequests(allRelations.filter(r => r.status !== 'friends')); 
+            
+            // Logic WebSocket: Server sẽ tự động gửi danh sách online sau khi kết nối.
+
         } catch (error) {
             console.error("Lỗi khi tải danh sách bạn bè:", error);
+
+            // Xử lý lỗi xác thực (401 hoặc Token hết hạn)
+            if ((error.status === 401 || (error.message && error.message.includes('expired'))) && retryCount === 0) {
+                console.log("🔄 Thử làm mới token và tải lại danh sách bạn bè...");
+                const refreshed = await handleTokenRefresh();
+                if (refreshed) {
+                    // Thử tải lại 1 lần sau khi làm mới token thành công
+                    await fetchAllFriendData(1); 
+                    return;
+                }
+            }
+
+            // Nếu thất bại, xóa dữ liệu hiện tại
             setFriends([]);
             setRequests([]);
         }
-    }, [apiKey, isAuthenticated]);
+    }, [apiKey, isAuthenticated, handleTokenRefresh]);
 
     // Effect chính để tải dữ liệu ban đầu
     useEffect(() => {
         fetchAllFriendData();
     }, [fetchAllFriendData]);
 
-    // Effect chuyên lắng nghe các sự kiện WebSocket
+    // ==========================================================
+    // 🌐 Effect chuyên lắng nghe các sự kiện WebSocket
+    // ==========================================================
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        // Các sự kiện thay đổi trạng thái bạn bè trực tiếp
+        // Xử lý khi có thay đổi trạng thái (chấp nhận/từ chối/xóa/nhận lời mời mới)
         const handleFriendChange = () => {
             console.log("[WebSocket] Nhận được sự kiện thay đổi bạn bè, đang tải lại...");
             fetchAllFriendData();
         };
 
-        const handleFriendOnline = ({ username }) => setOnlineFriends(prev => new Set(prev).add(username));
+        // Xử lý trạng thái Online
+        const handleFriendOnline = ({ username }) => {
+            console.log(`[Online] ${username} online.`);
+            setOnlineFriends(prev => new Set(prev).add(username));
+        }
+
+        // Xử lý trạng thái Offline
         const handleFriendOffline = ({ username }) => {
+            console.log(`[Offline] ${username} offline.`);
             setOnlineFriends(prev => {
                 const newSet = new Set(prev);
                 newSet.delete(username);
                 return newSet;
             });
         };
-        const handleOnlineList = (onlineUsernames) => {
+        
+        // Xử lý danh sách Online ban đầu (Đã sửa tên sự kiện theo server.js)
+        const handleInitialOnlineList = (onlineUsernames) => {
             if (Array.isArray(onlineUsernames)) {
+                console.log(`[Online List] Nhận danh sách ban đầu: ${onlineUsernames.join(', ')}`);
                 setOnlineFriends(new Set(onlineUsernames));
             }
         };
 
+        // Đăng ký Listener
         websocketService.on('friend:request_accepted', handleFriendChange);
         websocketService.on('friend:request_declined', handleFriendChange);
         websocketService.on('friend:removed', handleFriendChange);
-        
-        // Thêm một listener nữa cho 'notification:new' để bắt lời mời mới
-        websocketService.on('notification:new', handleFriendChange);
+        websocketService.on('friend:request_received', handleFriendChange); // Bắt lời mời mới nhận được
 
         websocketService.on('friend:online', handleFriendOnline);
         websocketService.on('friend:offline', handleFriendOffline);
-        websocketService.on('friend:list_online', handleOnlineList);
+        websocketService.on('friend:list_initial_online', handleInitialOnlineList); 
 
+        // Hủy Đăng ký Listener khi component unmount hoặc isAuthenticated thay đổi
         return () => {
             websocketService.off('friend:request_accepted', handleFriendChange);
             websocketService.off('friend:request_declined', handleFriendChange);
             websocketService.off('friend:removed', handleFriendChange);
-            websocketService.off('notification:new', handleFriendChange);
+            websocketService.off('friend:request_received', handleFriendChange);
             websocketService.off('friend:online', handleFriendOnline);
             websocketService.off('friend:offline', handleFriendOffline);
-            websocketService.off('friend:list_online', handleOnlineList);
+            websocketService.off('friend:list_initial_online', handleInitialOnlineList);
         };
     }, [isAuthenticated, fetchAllFriendData]);
 
+    // ==========================================================
+    // ✍️ HÀM GỬI LỜI MỜI KẾT BẠN (Xử lý lỗi Token Hết Hạn)
+    // ==========================================================
     const sendFriendRequest = async (targetUsername) => {
-        const res = await api.sendFriendRequest(apiKey, targetUsername);
-        // Sau khi gửi thành công, tải lại ngay lập tức
-        await fetchAllFriendData();
-        return res;
+        if (!apiKey) throw new Error("Vui lòng đăng nhập để gửi lời mời.");
+        try {
+            const res = await api.sendFriendRequest(apiKey, targetUsername);
+            await fetchAllFriendData(); // Tải lại danh sách để cập nhật trạng thái 'Đã gửi'
+            return res;
+        } catch (error) {
+            // Thử làm mới token và gửi lại
+            if (error.status === 401 || (error.message && error.message.includes('expired'))) {
+                 const refreshed = await handleTokenRefresh();
+                 if (refreshed) {
+                    const res = await api.sendFriendRequest(apiKey, targetUsername);
+                    await fetchAllFriendData();
+                    return res;
+                 }
+            }
+            throw error; // Ném lỗi nếu không thể khôi phục
+        }
     };
 
+    // ==========================================================
+    // ✅ HÀM PHẢN HỒI LỜI MỜI (Cần tự thêm logic xử lý 401 nếu cần)
+    // ==========================================================
     const respondToFriendRequest = async (requesterUsername, action) => {
+        if (!apiKey) throw new Error("Vui lòng đăng nhập để phản hồi lời mời.");
         const res = await api.respondToFriendRequest(apiKey, requesterUsername, action);
-        // Sau khi phản hồi, tải lại ngay lập tức
-        await fetchAllFriendData();
+        await fetchAllFriendData(); // Tải lại để cập nhật trạng thái 'Đã là bạn bè'
         return res;
     };
 
+    // ==========================================================
+    // 🗑️ HÀM XÓA BẠN BÈ (Cần tự thêm logic xử lý 401 nếu cần)
+    // ==========================================================
     const removeFriend = async (friendUsername) => {
+        if (!apiKey) throw new Error("Vui lòng đăng nhập để xóa bạn bè.");
         if (!window.confirm(`Bạn có chắc muốn xóa ${friendUsername} khỏi danh sách bạn bè không?`)) {
             return;
         }
         try {
             const res = await api.removeFriend(apiKey, friendUsername);
-            // Sau khi xóa, tải lại ngay lập tức
-            await fetchAllFriendData();
+            await fetchAllFriendData(); // Tải lại để xóa khỏi danh sách
             alert(res.message);
         } catch (error) {
             console.error("Lỗi khi xóa bạn:", error);
@@ -116,13 +171,17 @@ export const FriendsProvider = ({ children }) => {
         }
     };
     
+    // ==========================================================
+    // 📦 CONTEXT VALUE
+    // ==========================================================
     const value = {
         friends,
-        requests, // Đây là một mảng chứa cả 'sent' và 'pending'
+        requests,
         onlineFriends,
         sendFriendRequest,
         respondToFriendRequest,
         removeFriend,
+        fetchAllFriendData, // Export hàm này để có thể gọi thủ công khi cần
     };
 
     return (
@@ -132,6 +191,9 @@ export const FriendsProvider = ({ children }) => {
     );
 };
 
+// ==========================================================
+// 🪝 CUSTOM HOOK
+// ==========================================================
 export const useFriends = () => {
     const context = useContext(FriendsContext);
     if (!context) {

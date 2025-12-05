@@ -9,20 +9,19 @@ async function handleResponse(response) {
         const error = await response.json().catch(() => ({ 
             message: `Lỗi Server: ${response.status} ${response.statusText}` 
         }));
-        throw new Error(error.message || 'Đã có lỗi xảy ra');
+        
+        // Thêm status vào đối tượng Error để Context có thể xử lý lỗi 401/expired token
+        const err = new Error(error.message || 'Đã có lỗi xảy ra');
+        err.status = response.status; 
+        throw err;
     }
     return response.json();
 }
 
 // ============================================
-// 🆕 HÀM MỚI: Xác thực bằng Access Token (JWT)
+// 🆕 HÀM XÁC THỰC VÀ ĐĂNG NHẬP
 // ============================================
-/**
- * Xác thực người dùng bằng JWT Access Token
- * Được gọi khi tải trang để kiểm tra session
- * @param {string} accessToken - JWT Access Token từ localStorage
- * @returns {Promise<Object>} Thông tin người dùng
- */
+
 export const validateToken = async (accessToken) => {
     const response = await fetch(`${API_URL}/auth/me`, {
         method: 'GET',
@@ -34,13 +33,6 @@ export const validateToken = async (accessToken) => {
     return handleResponse(response);
 };
 
-// ============================================
-// 🔄 HÀM CŨ: Giữ lại cho tương thích ngược
-// ============================================
-/**
- * @deprecated Sử dụng validateToken() thay thế
- * Chỉ giữ lại nếu có component khác đang dùng
- */
 export const validateApiKey = async (apiKey) => {
     console.warn('⚠️ validateApiKey() đã lỗi thời. Hãy dùng validateToken()');
     const response = await fetch(`${API_URL}/auth/me`, {
@@ -48,10 +40,6 @@ export const validateApiKey = async (apiKey) => {
     }); 
     return handleResponse(response);
 }; 
-
-// ============================================
-// 🔐 CÁC HÀM XÁC THỰC KHÁC (giữ nguyên)
-// ============================================
 
 export const register = async (username, email, password) => {
     const response = await fetch(`${API_URL}/auth/register`, {
@@ -127,7 +115,7 @@ export const logout = async (accessToken, refreshToken) => {
 };
 
 // ============================================
-// 📜 CÁC HÀM HISTORY (vẫn dùng API Key)
+// 📜 CÁC HÀM HISTORY
 // ============================================
 
 export const getHistory = async (apiKey) => {
@@ -158,7 +146,7 @@ export const clearHistory = async (apiKey) => {
 };
 
 // ============================================
-// 👥 CÁC HÀM BẠN BÈ (vẫn dùng API Key)
+// 👥 CÁC HÀM BẠN BÈ (ĐÃ SỬA LỖI KEY PAYLOAD)
 // ============================================
 
 export const getFriends = async (apiKey) => {
@@ -175,7 +163,8 @@ export const sendFriendRequest = async (apiKey, targetUsername) => {
             'Content-Type': 'application/json', 
             'x-api-key': apiKey 
         },
-        body: JSON.stringify({ targetUsername }),
+        // SỬA LỖI KEY PAYLOAD: Dùng key 'username'
+        body: JSON.stringify({ username: targetUsername }),
     });
     return handleResponse(response);
 };
@@ -187,7 +176,11 @@ export const respondToFriendRequest = async (apiKey, requesterUsername, action) 
             'Content-Type': 'application/json', 
             'x-api-key': apiKey 
         },
-        body: JSON.stringify({ requesterUsername, action }),
+        body: JSON.stringify({ 
+            // SỬA LỖI 400: Dùng key 'username'
+            username: requesterUsername, 
+            action 
+        }),
     });
     return handleResponse(response);
 };
@@ -208,7 +201,7 @@ export const searchUsers = async (apiKey, query) => {
 };
 
 // ============================================
-// 💬 HÀM CHAT (vẫn dùng API Key)
+// 💬 HÀM CHAT (Dùng API Key)
 // ============================================
 
 export const getChatHistory = async (apiKey, friendUsername) => {

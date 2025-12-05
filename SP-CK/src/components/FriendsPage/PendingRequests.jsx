@@ -6,8 +6,8 @@ const PendingRequests = () => {
 
     const { requests, respondToFriendRequest, isLoading } = useFriends();
 
-    const received = requests.filter(r => r.status === 'pending');
-    const sent = requests.filter(r => r.status === 'sent');
+    const received = requests.filter(r => r.status === 'pending' || r.status === 'pending_received');
+    const sent = requests.filter(r => r.status === 'sent' || r.status === 'pending_sent');
 
 
     if (isLoading) {
