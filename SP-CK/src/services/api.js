@@ -1,4 +1,4 @@
-// src/services/api.js - LOGIC CŨ HOÀN TOÀN
+// src/services/api.js - FIX HANDLE RESPONSE & NULL TOKEN
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 

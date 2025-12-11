@@ -1,4 +1,4 @@
-// src/context/AuthContext.jsx - FIX LỖI INCLUDES
+// src/context/AuthContext.jsx - FIX SAFE VALIDATION
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as api from '../services/api';
@@ -162,6 +162,7 @@ export const AuthProvider = ({ children }) => {
             accessToken,
             refreshToken,
             isLoading,
+            isAuthenticated: !!user, // Thêm dòng này để NotificationContext dùng
             history,
             login,
             logout,

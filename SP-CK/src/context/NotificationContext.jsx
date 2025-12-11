@@ -1,4 +1,4 @@
-// src/context/NotificationContext.jsx (Phiên bản Hoàn chỉnh)
+// src/context/NotificationContext.jsx (Đã sửa lỗi attribute jsx)
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import websocketService from '../services/websocketService';
