@@ -2,215 +2,178 @@
 
 import React from 'react';
 
-const ShopHeader = ({ coins = 0, gems = 0, onAddCurrency }) => {
+const ShopHeader = ({ coins = 0, gems = 0, onAddCurrency, activeTab, onTabChange }) => {
     return (
-        <div className="shop-header">
+        <div className="shop-header-container">
             <style>{`
-                .shop-header {
+                .shop-header-container {
                     position: sticky;
                     top: 0;
                     z-index: 100;
-                    background: rgba(15, 12, 41, 0.95);
-                    backdrop-filter: blur(20px);
-                    border-bottom: 2px solid rgba(139, 92, 246, 0.3);
                     padding: 20px 40px;
+                    pointer-events: none; /* Để click xuyên qua các vùng trống */
                 }
 
-                .shop-header-content {
-                    max-width: 1400px;
+                .shop-hud {
+                    max-width: 1600px;
                     margin: 0 auto;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    pointer-events: auto;
                 }
 
-                .shop-title-section {
+                /* --- LEFT: NAVIGATION TABS --- */
+                .nav-capsule {
+                    background: rgba(15, 23, 42, 0.6);
+                    backdrop-filter: blur(12px);
+                    padding: 6px;
+                    border-radius: 100px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     display: flex;
-                    align-items: center;
-                    gap: 20px;
+                    gap: 5px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
                 }
 
-                .shop-icon {
-                    width: 60px;
-                    height: 60px;
-                    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-                    border-radius: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 2rem;
-                    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
-                    animation: float 3s ease-in-out infinite;
-                }
-
-                @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-10px); }
-                }
-
-                .shop-title {
-                    font-size: 2rem;
-                    font-weight: 800;
-                    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    margin: 0;
-                }
-
-                .shop-subtitle {
-                    font-size: 0.9rem;
+                .nav-btn {
+                    padding: 12px 32px;
+                    border-radius: 100px;
+                    border: none;
+                    background: transparent;
                     color: rgba(255, 255, 255, 0.6);
-                    margin: 5px 0 0 0;
-                }
-
-                .currency-section {
+                    font-weight: 600;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
                     display: flex;
-                    gap: 20px;
                     align-items: center;
+                    gap: 8px;
                 }
 
-                .currency-display {
+                .nav-btn:hover {
+                    color: white;
+                }
+
+                .nav-btn.active {
+                    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+                    color: white;
+                    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+                }
+
+                /* --- RIGHT: CURRENCY --- */
+                .currency-group {
+                    display: flex;
+                    gap: 16px;
+                }
+
+                .currency-pill {
+                    background: rgba(15, 23, 42, 0.8);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 8px 20px 8px 8px;
+                    border-radius: 100px;
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    background: rgba(139, 92, 246, 0.1);
-                    border: 2px solid rgba(139, 92, 246, 0.3);
-                    border-radius: 16px;
-                    padding: 12px 24px;
-                    transition: all 0.3s ease;
+                    transition: transform 0.2s ease;
                 }
 
-                .currency-display:hover {
-                    background: rgba(139, 92, 246, 0.2);
-                    border-color: rgba(139, 92, 246, 0.5);
+                .currency-pill:hover {
                     transform: translateY(-2px);
+                    border-color: rgba(255, 255, 255, 0.3);
                 }
 
-                .currency-icon {
-                    width: 32px;
-                    height: 32px;
+                .currency-icon-circle {
+                    width: 36px;
+                    height: 36px;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     font-size: 1.2rem;
-                    animation: spin 4s linear infinite;
+                    box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
                 }
 
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
+                .coin-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+                .gem-icon { background: linear-gradient(135deg, #ec4899, #be185d); }
 
-                .currency-icon.coins {
-                    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-                    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
-                }
-
-                .currency-icon.gems {
-                    background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
-                    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4);
-                }
-
-                .currency-info {
+                .currency-value {
                     display: flex;
                     flex-direction: column;
+                    line-height: 1.2;
                 }
 
-                .currency-label {
-                    font-size: 0.75rem;
-                    color: rgba(255, 255, 255, 0.5);
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                }
+                .val-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+                .val-amount { font-size: 1.1rem; font-weight: 700; color: white; font-family: monospace; }
 
-                .currency-amount {
-                    font-size: 1.2rem;
-                    font-weight: 700;
-                    color: white;
-                }
-
-                .add-currency-btn {
-                    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+                .add-btn {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 50%;
                     border: none;
-                    border-radius: 12px;
-                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #3b82f6, #2563eb);
                     color: white;
-                    font-weight: 600;
+                    font-size: 1.5rem;
                     cursor: pointer;
-                    transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
-                    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+                    justify-content: center;
+                    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+                    transition: all 0.2s ease;
                 }
 
-                .add-currency-btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.6);
-                }
-
-                .add-currency-btn i {
-                    font-size: 1.2rem;
+                .add-btn:hover {
+                    transform: rotate(90deg);
+                    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.6);
                 }
 
                 @media (max-width: 768px) {
-                    .shop-header {
-                        padding: 15px 20px;
-                    }
-
-                    .shop-header-content {
-                        flex-direction: column;
-                        gap: 20px;
-                    }
-
-                    .currency-section {
-                        width: 100%;
-                        justify-content: space-between;
-                    }
-
-                    .shop-title {
-                        font-size: 1.5rem;
-                    }
+                    .shop-header-container { padding: 10px 15px; }
+                    .shop-hud { flex-direction: column-reverse; gap: 15px; }
+                    .nav-capsule { width: 100%; justify-content: center; }
+                    .currency-group { width: 100%; justify-content: space-between; }
                 }
             `}</style>
 
-            <div className="shop-header-content">
-                <div className="shop-title-section">
-                    <div className="shop-icon">
-                        🎴
-                    </div>
-                    <div>
-                        <h1 className="shop-title">Card Shop</h1>
-                        <p className="shop-subtitle">Mở pack và sưu tầm thẻ huyền thoại</p>
-                    </div>
+            <div className="shop-hud">
+                {/* Navigation Tabs */}
+                <div className="nav-capsule">
+                    <button 
+                        className={`nav-btn ${activeTab === 'packs' ? 'active' : ''}`}
+                        onClick={() => onTabChange('packs')}
+                    >
+                        <i className='bx bxs-store'></i> Market
+                    </button>
+                    <button 
+                        className={`nav-btn ${activeTab === 'collection' ? 'active' : ''}`}
+                        onClick={() => onTabChange('collection')}
+                    >
+                        <i className='bx bxs-collection'></i> Collection
+                    </button>
                 </div>
 
-                <div className="currency-section">
-                    <div className="currency-display">
-                        <div className="currency-icon coins">
-                            💰
-                        </div>
-                        <div className="currency-info">
-                            <span className="currency-label">Coins</span>
-                            <span className="currency-amount">{coins.toLocaleString()}</span>
-                        </div>
-                    </div>
-
-                    <div className="currency-display">
-                        <div className="currency-icon gems">
-                            💎
-                        </div>
-                        <div className="currency-info">
-                            <span className="currency-label">Gems</span>
-                            <span className="currency-amount">{gems.toLocaleString()}</span>
+                {/* Currency Display */}
+                <div className="currency-group">
+                    <div className="currency-pill">
+                        <div className="currency-icon-circle coin-icon">💰</div>
+                        <div className="currency-value">
+                            <span className="val-label">Gold</span>
+                            <span className="val-amount">{coins.toLocaleString()}</span>
                         </div>
                     </div>
 
-                    <button className="add-currency-btn" onClick={onAddCurrency}>
-                        <i className='bx bx-plus-circle'></i>
-                        Nạp Thêm
+                    <div className="currency-pill">
+                        <div className="currency-icon-circle gem-icon">💎</div>
+                        <div className="currency-value">
+                            <span className="val-label">Gems</span>
+                            <span className="val-amount">{gems.toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <button className="add-btn" onClick={onAddCurrency}>
+                        <i className='bx bx-plus'></i>
                     </button>
                 </div>
             </div>

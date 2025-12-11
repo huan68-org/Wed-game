@@ -1,100 +1,146 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import * as api from '../services/api';
-import websocketService from '../services/websocketService';
-import { useAuth } from './AuthContext';
+// src/context/ChatContext.jsx - FIX SAFE GUARDS
 
-const ChatContext = createContext(null);
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import websocketService from '../services/websocketService';
+
+const ChatContext = createContext();
+
+export const useChat = () => {
+    const context = useContext(ChatContext);
+    if (!context) {
+        throw new Error('useChat must be used within a ChatProvider');
+    }
+    return context;
+};
 
 export const ChatProvider = ({ children }) => {
-    const { apiKey, user, isAuthenticated } = useAuth();
     const [activeChats, setActiveChats] = useState({});
     const [unreadChats, setUnreadChats] = useState(new Set());
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            setActiveChats({});
-            setUnreadChats(new Set());
-            return;
-        }
-
-        const handleNewDM = (data) => {
-            const friendUsername = data.sender === user.username ? data.recipient : data.sender;
-            
-            setActiveChats(prev => {
-                if (!prev[friendUsername]) {
-                    if (data.sender !== user.username) {
-                        setUnreadChats(prevUnread => new Set(prevUnread).add(friendUsername));
-                    }
-                    return prev;
+    const openChat = useCallback((friendUsername) => {
+        setActiveChats(prev => {
+            if (prev[friendUsername]) {
+                return prev;
+            }
+            return {
+                ...prev, 
+                [friendUsername]: {
+                    messages: [],
+                    unreadCount: 0
                 }
-                return {
-                    ...prev,
-                    [friendUsername]: {
-                        ...prev[friendUsername],
-                        messages: [...prev[friendUsername].messages, data]
-                    }
-                };
-            });
-        };
-
-        websocketService.on('chat:new_dm', handleNewDM);
-        return () => {
-            websocketService.off('chat:new_dm', handleNewDM);
-        };
-    }, [isAuthenticated, user]);
-
-    const openChat = async (friendUsername) => {
-        // SỬA LẠI: Kiểm tra apiKey một cách chặt chẽ hơn
-        if (!apiKey) {
-            console.error("Không thể mở chat: API Key không tồn tại.");
-            return;
-        }
-        if (activeChats[friendUsername]) return;
-
-        setUnreadChats(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(friendUsername);
-            return newSet;
+            };
         });
+    }, []);
 
-        try {
-            const history = await api.getChatHistory(apiKey, friendUsername);
-            setActiveChats(prev => ({
-                ...prev,
-                [friendUsername]: { messages: history }
-            }));
-        } catch (error) {
-            console.error(`Lỗi khi mở chat với ${friendUsername}:`, error);
-            // Có thể hiển thị thông báo lỗi cho người dùng ở đây
-        }
-    };
-    
-    const closeChat = (friendUsername) => {
+    const closeChat = useCallback((friendUsername) => {
         setActiveChats(prev => {
             const newChats = { ...prev };
             delete newChats[friendUsername];
             return newChats;
         });
-    };
+    }, []);
 
-    const sendMessage = (recipient, message) => {
-        // SỬA LẠI: Kiểm tra trước khi gửi
-        if (!apiKey) {
-            console.error("Không thể gửi tin nhắn: API Key không tồn tại.");
+    const sendMessage = useCallback((friendUsername, message) => {
+        if (!websocketService.isConnected()) {
+            console.error('WebSocket not connected');
             return;
         }
-        websocketService.send('chat:dm', { recipient, message });
-    };
-    
-    const value = { activeChats, openChat, closeChat, sendMessage, unreadChats };
 
-    return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
-};
+        websocketService.send('private_message', {
+            recipient: friendUsername,
+            message: message
+        });
 
-export const useChat = () => {
-    const context = useContext(ChatContext);
-    if (!context) {
-        throw new Error('useChat phải được sử dụng trong ChatProvider');
-    }
-    return context;
+        setActiveChats(prev => ({
+            ...prev,
+            [friendUsername]: {
+                ...prev[friendUsername],
+                messages: [
+                    ...(prev[friendUsername]?.messages || []),
+                    {
+                        sender: 'me',
+                        message: message,
+                        timestamp: new Date()
+                    }
+                ]
+            }
+        }));
+    }, []);
+
+    const markAsRead = useCallback((friendUsername) => {
+        setActiveChats(prev => ({
+            ...prev,
+            [friendUsername]: {
+                ...prev[friendUsername],
+                unreadCount: 0
+            }
+        }));
+        
+        setUnreadChats(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(friendUsername);
+            return newSet;
+        });
+    }, []);
+
+    useEffect(() => {
+        const handlePrivateMessage = (data) => {
+            if (!data?.sender || !data?.message) return;
+            
+            const { sender, message } = data;
+            
+            setActiveChats(prev => {
+                const chat = prev[sender] || { messages: [], unreadCount: 0 };
+                return {
+                    ...prev,
+                    [sender]: {
+                        messages: [
+                            ...chat.messages,
+                            {
+                                sender: sender,
+                                message: message,
+                                timestamp: new Date()
+                            }
+                        ],
+                        unreadCount: (chat.unreadCount || 0) + 1
+                    }
+                };
+            });
+
+            setUnreadChats(prev => new Set([...prev, sender]));
+
+            try {
+                const audio = new Audio('/notification.mp3');
+                audio.volume = 0.3;
+                audio.play().catch(e => console.log('Sound play failed:', e));
+            } catch (e) {
+                console.log('Notification sound error:', e);
+            }
+        };
+
+        websocketService.on('private_message', handlePrivateMessage);
+
+        return () => {
+            websocketService.off('private_message', handlePrivateMessage);
+        };
+    }, []);
+
+    const totalUnreadCount = Object.values(activeChats).reduce(
+        (sum, chat) => sum + (chat.unreadCount || 0),
+        0
+    );
+
+    return (
+        <ChatContext.Provider value={{
+            activeChats,
+            unreadChats,
+            openChat,
+            closeChat,
+            sendMessage,
+            markAsRead,
+            totalUnreadCount
+        }}>
+            {children}
+        </ChatContext.Provider>
+    );
 };

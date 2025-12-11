@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import gsap from 'gsap';
 import 'boxicons/css/boxicons.min.css';
 
 const PostGameScreen = ({ isWinner, isDraw, opponent, onRematch, onLeave, postGameStatus }) => {
+    const containerRef = useRef();
+    const cardRef = useRef();
+    
     let message = '';
     let messageClass = '';
     let iconClass = '';
@@ -19,256 +23,404 @@ const PostGameScreen = ({ isWinner, isDraw, opponent, onRematch, onLeave, postGa
         messageClass = "#ef4444";
         iconClass = "bx-x-circle";
     }
+
+    useEffect(() => {
+        if (cardRef.current) {
+            // Enhanced entrance animation with GSAP
+            gsap.fromTo(
+                cardRef.current,
+                { 
+                    scale: 0.5, 
+                    opacity: 0, 
+                    rotationY: -180,
+                    y: 100
+                },
+                {
+                    scale: 1,
+                    opacity: 1,
+                    rotationY: 0,
+                    y: 0,
+                    duration: 1,
+                    ease: 'elastic.out(1, 0.6)',
+                    clearProps: 'transform'
+                }
+            );
+        }
+    }, []);
     
     return (
-        <div className="postgame-cosmic-container">
+        <div ref={containerRef} className="postgame-cosmic-overlay">
             <style>{`
                 /* ============================================ */
-                /* 🏆 POST GAME SCREEN - GAMEHUB PREMIUM STYLE */
+                /* 🏆 POST GAME SCREEN - COSMIC 3D INTEGRATION */
                 /* ============================================ */
 
-                .postgame-cosmic-container {
+                .postgame-cosmic-overlay {
+                    position: fixed;
+                    inset: 0;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    min-height: 100vh;
                     padding: 20px;
-                    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                /* ===== ANIMATED BACKGROUND ===== */
-                .postgame-cosmic-container::before {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: 
-                        radial-gradient(circle at 20% 30%, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
-                    animation: bgPulse 8s ease-in-out infinite;
+                    z-index: 100;
                     pointer-events: none;
                 }
 
-                @keyframes bgPulse {
-                    0%, 100% { opacity: 0.5; }
-                    50% { opacity: 0.8; }
+                .postgame-cosmic-overlay::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
+                    backdrop-filter: blur(8px);
+                    animation: overlayFadeIn 0.5s ease-out;
+                    pointer-events: none;
+                }
+
+                @keyframes overlayFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
                 }
 
                 /* ===== POSTGAME CARD ===== */
                 .postgame-card {
-                    background: linear-gradient(135deg, rgba(30, 30, 60, 0.95), rgba(20, 20, 40, 0.95));
-                    backdrop-filter: blur(20px);
+                    background: linear-gradient(135deg, 
+                        rgba(15, 12, 41, 0.98), 
+                        rgba(48, 43, 99, 0.95),
+                        rgba(36, 36, 62, 0.98)
+                    );
+                    backdrop-filter: blur(30px) saturate(180%);
                     border: 3px solid transparent;
                     background-image: 
-                        linear-gradient(135deg, rgba(30, 30, 60, 0.95), rgba(20, 20, 40, 0.95)),
-                        linear-gradient(135deg, #a78bfa, #ec4899, #f59e0b);
+                        linear-gradient(135deg, rgba(15, 12, 41, 0.98), rgba(36, 36, 62, 0.98)),
+                        linear-gradient(135deg, #a78bfa, #ec4899, #f59e0b, #10b981);
                     background-origin: border-box;
                     background-clip: padding-box, border-box;
-                    border-radius: 24px;
-                    padding: 50px 40px;
+                    border-radius: 32px;
+                    padding: 60px 50px;
                     text-align: center;
                     box-shadow: 
-                        0 30px 60px rgba(0, 0, 0, 0.5),
-                        0 0 100px rgba(167, 139, 250, 0.3);
-                    animation: cardEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    max-width: 500px;
+                        0 40px 80px rgba(0, 0, 0, 0.8),
+                        0 0 120px rgba(167, 139, 250, 0.4),
+                        inset 0 0 80px rgba(167, 139, 250, 0.05);
+                    max-width: 550px;
                     width: 100%;
                     position: relative;
                     z-index: 1;
+                    pointer-events: auto;
+                    transform-style: preserve-3d;
+                    perspective: 1000px;
                 }
 
-                @keyframes cardEntrance {
-                    from {
-                        transform: scale(0.8) translateY(50px);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: scale(1) translateY(0);
-                        opacity: 1;
-                    }
+                /* Animated border glow */
+                .postgame-card::after {
+                    content: '';
+                    position: absolute;
+                    inset: -3px;
+                    border-radius: 32px;
+                    background: linear-gradient(135deg, #a78bfa, #ec4899, #f59e0b, #10b981);
+                    z-index: -1;
+                    opacity: 0.6;
+                    filter: blur(20px);
+                    animation: borderGlow 3s ease-in-out infinite;
+                }
+
+                @keyframes borderGlow {
+                    0%, 100% { opacity: 0.4; transform: scale(0.98); }
+                    50% { opacity: 0.8; transform: scale(1.02); }
                 }
 
                 /* ===== ICON ===== */
                 .postgame-icon-wrapper {
                     position: relative;
                     display: inline-block;
-                    margin-bottom: 24px;
-                    animation: iconBounce 2s ease-in-out infinite;
+                    margin-bottom: 30px;
+                    animation: iconFloat 3s ease-in-out infinite;
+                    filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
                 }
 
-                @keyframes iconBounce {
-                    0%, 100% { transform: translateY(0) scale(1); }
-                    50% { transform: translateY(-15px) scale(1.1); }
+                @keyframes iconFloat {
+                    0%, 100% { 
+                        transform: translateY(0) scale(1) rotate(0deg); 
+                    }
+                    25% { 
+                        transform: translateY(-20px) scale(1.1) rotate(5deg); 
+                    }
+                    50% { 
+                        transform: translateY(-10px) scale(1.05) rotate(0deg); 
+                    }
+                    75% { 
+                        transform: translateY(-20px) scale(1.1) rotate(-5deg); 
+                    }
                 }
 
                 .postgame-icon {
-                    font-size: 5rem;
-                    filter: drop-shadow(0 0 30px currentColor);
+                    font-size: 6rem;
+                    filter: drop-shadow(0 0 40px currentColor);
+                    animation: iconPulse 2s ease-in-out infinite;
+                }
+
+                @keyframes iconPulse {
+                    0%, 100% { filter: drop-shadow(0 0 40px currentColor) brightness(1); }
+                    50% { filter: drop-shadow(0 0 60px currentColor) brightness(1.3); }
                 }
 
                 .postgame-icon-glow {
                     position: absolute;
-                    inset: -30px;
-                    background: radial-gradient(circle, currentColor, transparent 70%);
-                    opacity: 0.3;
-                    animation: glowPulse 2s ease-in-out infinite;
+                    inset: -50px;
+                    background: radial-gradient(circle, currentColor, transparent 60%);
+                    opacity: 0.4;
+                    animation: glowExpand 2s ease-in-out infinite;
                     z-index: -1;
+                    border-radius: 50%;
                 }
 
-                @keyframes glowPulse {
-                    0%, 100% { opacity: 0.3; transform: scale(1); }
-                    50% { opacity: 0.6; transform: scale(1.2); }
+                @keyframes glowExpand {
+                    0%, 100% { 
+                        opacity: 0.3; 
+                        transform: scale(1); 
+                    }
+                    50% { 
+                        opacity: 0.6; 
+                        transform: scale(1.3); 
+                    }
                 }
 
                 /* ===== TITLE ===== */
                 .postgame-title {
-                    font-size: 3rem;
+                    font-size: 3.5rem;
                     font-weight: 900;
                     text-transform: uppercase;
-                    letter-spacing: 2px;
-                    margin-bottom: 20px;
-                    animation: titleShine 3s ease-in-out infinite;
+                    letter-spacing: 3px;
+                    margin-bottom: 24px;
+                    text-shadow: 
+                        0 0 20px currentColor,
+                        0 0 40px currentColor,
+                        0 4px 8px rgba(0, 0, 0, 0.5);
+                    animation: titleShimmer 3s ease-in-out infinite;
                 }
 
-                @keyframes titleShine {
-                    0%, 100% { filter: brightness(1); }
-                    50% { filter: brightness(1.3); }
+                @keyframes titleShimmer {
+                    0%, 100% { 
+                        filter: brightness(1) drop-shadow(0 0 20px currentColor); 
+                    }
+                    50% { 
+                        filter: brightness(1.4) drop-shadow(0 0 40px currentColor); 
+                    }
                 }
 
                 /* ===== MESSAGE ===== */
                 .postgame-message {
-                    font-size: 1.2rem;
-                    color: rgba(255, 255, 255, 0.8);
-                    margin-bottom: 32px;
-                    line-height: 1.6;
+                    font-size: 1.3rem;
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 40px;
+                    line-height: 1.8;
+                    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
                 }
 
                 .postgame-opponent {
-                    font-weight: 700;
-                    background: linear-gradient(135deg, #a78bfa, #ec4899);
+                    font-weight: 800;
+                    background: linear-gradient(135deg, #a78bfa, #ec4899, #f59e0b);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
+                    filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.5));
+                    animation: opponentGlow 2s ease-in-out infinite;
+                }
+
+                @keyframes opponentGlow {
+                    0%, 100% { filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.5)); }
+                    50% { filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.8)); }
                 }
 
                 /* ===== BUTTONS ===== */
                 .postgame-buttons {
                     display: flex;
-                    gap: 16px;
+                    gap: 20px;
                     justify-content: center;
-                    margin-bottom: 20px;
+                    margin-bottom: 24px;
                 }
 
                 .postgame-btn {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    padding: 16px 32px;
-                    border-radius: 14px;
+                    gap: 12px;
+                    padding: 18px 36px;
+                    border-radius: 16px;
                     border: none;
                     font-size: 1.1rem;
                     font-weight: 700;
                     cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     text-transform: uppercase;
-                    letter-spacing: 1.5px;
+                    letter-spacing: 2px;
                     position: relative;
                     overflow: hidden;
+                    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
                 }
 
                 .postgame-btn::before {
                     content: '';
                     position: absolute;
                     inset: 0;
-                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
                     opacity: 0;
                     transition: opacity 0.3s ease;
+                }
+
+                .postgame-btn::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4), transparent 70%);
+                    opacity: 0;
+                    transform: scale(0);
+                    transition: all 0.5s ease;
                 }
 
                 .postgame-btn:hover::before {
                     opacity: 1;
                 }
 
+                .postgame-btn:active::after {
+                    opacity: 1;
+                    transform: scale(2);
+                    transition: all 0s;
+                }
+
                 .postgame-btn:disabled {
-                    opacity: 0.5;
+                    opacity: 0.6;
                     cursor: not-allowed;
+                    transform: none !important;
                 }
 
                 .postgame-btn i {
-                    font-size: 24px;
+                    font-size: 28px;
+                    animation: iconSpin 3s linear infinite;
+                }
+
+                .postgame-btn:hover i {
+                    animation: iconSpinFast 0.6s linear infinite;
+                }
+
+                @keyframes iconSpin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+
+                @keyframes iconSpinFast {
+                    0% { transform: rotate(0deg) scale(1); }
+                    50% { transform: rotate(180deg) scale(1.2); }
+                    100% { transform: rotate(360deg) scale(1); }
                 }
 
                 .postgame-btn-rematch {
-                    background: linear-gradient(135deg, #10b981, #059669);
+                    background: linear-gradient(135deg, #10b981, #059669, #047857);
                     color: white;
-                    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+                    box-shadow: 
+                        0 8px 30px rgba(16, 185, 129, 0.5),
+                        0 0 40px rgba(16, 185, 129, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
                 }
 
                 .postgame-btn-rematch:hover:not(:disabled) {
-                    transform: translateY(-5px) scale(1.05);
-                    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.7);
+                    transform: translateY(-8px) scale(1.08);
+                    box-shadow: 
+                        0 15px 50px rgba(16, 185, 129, 0.7),
+                        0 0 60px rgba(16, 185, 129, 0.5);
                 }
 
                 .postgame-btn-leave {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
                     color: white;
-                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border: 2px solid rgba(255, 255, 255, 0.4);
+                    backdrop-filter: blur(10px);
                 }
 
                 .postgame-btn-leave:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                    border-color: rgba(255, 255, 255, 0.5);
-                    transform: translateY(-3px);
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
+                    border-color: rgba(255, 255, 255, 0.6);
+                    transform: translateY(-5px) scale(1.05);
+                    box-shadow: 0 12px 40px rgba(255, 255, 255, 0.2);
                 }
 
                 .postgame-btn:active:not(:disabled) {
-                    transform: translateY(-2px) scale(0.98);
+                    transform: translateY(-3px) scale(1.02);
                 }
 
                 /* ===== STATUS MESSAGES ===== */
                 .postgame-status {
-                    font-size: 1rem;
+                    font-size: 1.1rem;
                     font-weight: 600;
-                    padding: 12px 24px;
-                    border-radius: 12px;
-                    margin-top: 16px;
+                    padding: 16px 28px;
+                    border-radius: 14px;
+                    margin-top: 20px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    backdrop-filter: blur(10px);
+                }
+
+                .postgame-status i {
+                    font-size: 24px;
                 }
 
                 .postgame-status-waiting {
-                    background: rgba(245, 158, 11, 0.2);
+                    background: rgba(245, 158, 11, 0.25);
                     color: #fbbf24;
-                    border: 2px solid rgba(245, 158, 11, 0.3);
-                    animation: statusPulse 2s ease-in-out infinite;
+                    border: 2px solid rgba(245, 158, 11, 0.5);
+                    box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+                    animation: statusPulseGlow 2s ease-in-out infinite;
                 }
 
-                @keyframes statusPulse {
-                    0%, 100% { opacity: 0.8; }
-                    50% { opacity: 1; }
+                @keyframes statusPulseGlow {
+                    0%, 100% { 
+                        opacity: 0.8; 
+                        box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+                    }
+                    50% { 
+                        opacity: 1; 
+                        box-shadow: 0 0 50px rgba(245, 158, 11, 0.6);
+                    }
                 }
 
                 .postgame-status-requested {
-                    background: rgba(59, 130, 246, 0.2);
+                    background: rgba(59, 130, 246, 0.25);
                     color: #60a5fa;
-                    border: 2px solid rgba(59, 130, 246, 0.3);
+                    border: 2px solid rgba(59, 130, 246, 0.5);
+                    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+                    animation: statusBlink 1s ease-in-out infinite;
+                }
+
+                @keyframes statusBlink {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.7; }
                 }
 
                 /* ===== CONFETTI ANIMATION (for winners) ===== */
+                .postgame-confetti-container {
+                    position: fixed;
+                    inset: 0;
+                    pointer-events: none;
+                    z-index: 99;
+                    overflow: hidden;
+                }
+
                 .postgame-confetti {
                     position: absolute;
-                    width: 10px;
-                    height: 10px;
-                    background: #fbbf24;
-                    animation: confettiFall 3s ease-in-out infinite;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 2px;
+                    animation: confettiFall 4s ease-in-out infinite;
+                    box-shadow: 0 0 10px currentColor;
                 }
 
                 @keyframes confettiFall {
                     0% {
-                        transform: translateY(-100vh) rotate(0deg);
+                        transform: translateY(-100vh) rotate(0deg) scale(1);
                         opacity: 1;
                     }
                     100% {
-                        transform: translateY(100vh) rotate(720deg);
+                        transform: translateY(100vh) rotate(1080deg) scale(0.5);
                         opacity: 0;
                     }
                 }
@@ -284,38 +436,47 @@ const PostGameScreen = ({ isWinner, isDraw, opponent, onRematch, onLeave, postGa
                 .postgame-confetti:nth-child(9) { left: 90%; animation-delay: 1.8s; background: #14b8a6; }
 
                 /* ===== RESPONSIVE ===== */
-                @media (max-width: 480px) {
+                @media (max-width: 640px) {
                     .postgame-card {
-                        padding: 40px 24px;
+                        padding: 40px 30px;
+                        border-radius: 24px;
                     }
 
                     .postgame-icon {
-                        font-size: 4rem;
+                        font-size: 4.5rem;
                     }
 
                     .postgame-title {
-                        font-size: 2rem;
+                        font-size: 2.5rem;
+                        letter-spacing: 2px;
                     }
 
                     .postgame-message {
-                        font-size: 1rem;
+                        font-size: 1.1rem;
                     }
 
                     .postgame-buttons {
                         flex-direction: column;
                         width: 100%;
+                        gap: 12px;
                     }
 
                     .postgame-btn {
                         width: 100%;
                         justify-content: center;
+                        padding: 16px 28px;
+                    }
+
+                    .postgame-status {
+                        font-size: 1rem;
+                        padding: 12px 20px;
                     }
                 }
             `}</style>
 
             {/* Confetti for winners */}
             {isWinner && (
-                <>
+                <div className="postgame-confetti-container">
                     <div className="postgame-confetti"></div>
                     <div className="postgame-confetti"></div>
                     <div className="postgame-confetti"></div>
@@ -325,10 +486,10 @@ const PostGameScreen = ({ isWinner, isDraw, opponent, onRematch, onLeave, postGa
                     <div className="postgame-confetti"></div>
                     <div className="postgame-confetti"></div>
                     <div className="postgame-confetti"></div>
-                </>
+                </div>
             )}
 
-            <div className="postgame-card">
+            <div ref={cardRef} className="postgame-card">
                 {/* Icon */}
                 <div className="postgame-icon-wrapper">
                     <div className="postgame-icon-glow" style={{ color: messageClass }}></div>

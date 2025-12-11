@@ -37,6 +37,7 @@ const PackOpeningModal = ({ pack, cards, onClose, onComplete }) => {
             }, 2000);
         }
     };
+    
 
     const handleSkip = () => {
         setRevealedCards(cards);

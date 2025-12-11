@@ -11,301 +11,273 @@ const FriendsPage = () => {
         <div className="friends-cosmic-container">
             <style>{`
                 /* ============================================ */
-                /* 👥 FRIENDS PAGE - GAMEHUB PREMIUM STYLE */
+                /* 👥 FRIENDS PAGE - COSMIC PREMIUM STYLE */
                 /* ============================================ */
 
                 .friends-cosmic-container {
                     position: relative;
                     min-height: 100vh;
-                    padding: 80px 20px 60px;
-                    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-                    overflow: hidden;
+                    padding: 100px 40px 60px; /* Căn chỉnh lại padding để tránh header che */
+                    background: radial-gradient(circle at top right, #1a1a2e 0%, #16213e 50%, #0f0c29 100%);
+                    overflow-x: hidden;
+                    color: white;
                 }
 
-                /* ===== ANIMATED BACKGROUND ===== */
+                /* Background Effects */
                 .friends-cosmic-container::before {
                     content: '';
                     position: fixed;
-                    inset: 0;
+                    top: 0; left: 0; right: 0; bottom: 0;
                     background: 
-                        radial-gradient(circle at 20% 30%, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
-                    animation: bgPulse 8s ease-in-out infinite;
+                        radial-gradient(circle at 15% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
                     pointer-events: none;
-                    z-index: 0;
                 }
 
-                @keyframes bgPulse {
-                    0%, 100% { opacity: 0.5; }
-                    50% { opacity: 0.8; }
-                }
-
-                /* Grid pattern */
-                .friends-cosmic-container::after {
-                    content: '';
-                    position: fixed;
-                    inset: 0;
-                    background-image: 
-                        linear-gradient(rgba(167, 139, 250, 0.05) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(167, 139, 250, 0.05) 1px, transparent 1px);
-                    background-size: 50px 50px;
-                    animation: gridMove 20s linear infinite;
-                    pointer-events: none;
-                    z-index: 0;
-                }
-
-                @keyframes gridMove {
-                    0% { transform: translate(0, 0); }
-                    100% { transform: translate(50px, 50px); }
-                }
-
-                /* ===== CONTENT WRAPPER ===== */
                 .friends-content-wrapper {
                     position: relative;
                     max-width: 1400px;
                     margin: 0 auto;
-                    z-index: 1;
+                    z-index: 10;
                 }
 
                 /* ===== HEADER ===== */
                 .friends-header {
                     text-align: center;
-                    margin-bottom: 50px;
-                    animation: fadeInDown 0.8s ease;
+                    margin-bottom: 60px;
+                    animation: fadeInDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
                 }
 
                 @keyframes fadeInDown {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    from { opacity: 0; transform: translateY(-30px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
 
                 .friends-title-wrapper {
                     display: inline-flex;
                     align-items: center;
-                    gap: 15px;
+                    gap: 20px;
                     margin-bottom: 16px;
                 }
 
                 .friends-title-icon {
-                    font-size: 3.5rem;
+                    font-size: 4rem;
                     background: linear-gradient(135deg, #a78bfa, #ec4899);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    animation: iconFloat 3s ease-in-out infinite;
+                    filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.5));
+                    animation: floatIcon 4s ease-in-out infinite;
                 }
 
-                @keyframes iconFloat {
-                    0%, 100% { transform: translateY(0) rotate(0deg); }
-                    50% { transform: translateY(-10px) rotate(5deg); }
+                @keyframes floatIcon {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-10px); }
                 }
 
                 .friends-title {
                     font-size: 3.5rem;
                     font-weight: 900;
-                    background: linear-gradient(135deg, #a78bfa, #ec4899, #f59e0b);
+                    background: linear-gradient(135deg, #fff 0%, #a78bfa 50%, #ec4899 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
-                    background-clip: text;
                     text-transform: uppercase;
                     letter-spacing: 2px;
+                    text-shadow: 0 10px 30px rgba(167, 139, 250, 0.3);
                 }
 
                 .friends-subtitle {
-                    font-size: 1.2rem;
-                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 1.1rem;
+                    color: rgba(255, 255, 255, 0.6);
                     font-weight: 400;
+                    letter-spacing: 0.5px;
                 }
 
                 /* ===== TAB NAVIGATION ===== */
                 .friends-tabs {
                     display: flex;
-                    gap: 15px;
                     justify-content: center;
-                    margin-bottom: 40px;
-                    animation: fadeIn 1s ease 0.2s both;
-                }
-
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
+                    gap: 20px;
+                    margin-bottom: 50px;
                 }
 
                 .friends-tab {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    padding: 14px 28px;
-                    background: rgba(255, 255, 255, 0.05);
+                    position: relative;
+                    padding: 14px 32px;
+                    background: rgba(255, 255, 255, 0.03);
                     backdrop-filter: blur(10px);
-                    border: 2px solid rgba(167, 139, 250, 0.3);
-                    border-radius: 14px;
-                    color: rgba(255, 255, 255, 0.7);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    color: rgba(255, 255, 255, 0.6);
                     font-size: 1rem;
                     font-weight: 600;
                     cursor: pointer;
-                    transition: all 0.3s ease;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
+                    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    overflow: hidden;
+                }
+
+                .friends-tab::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(236, 72, 153, 0.2));
+                    opacity: 0;
+                    transition: opacity 0.4s ease;
                 }
 
                 .friends-tab:hover {
-                    border-color: rgba(167, 139, 250, 0.6);
+                    border-color: rgba(167, 139, 250, 0.4);
                     color: white;
-                    transform: translateY(-2px);
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
                 }
 
                 .friends-tab.active {
                     background: linear-gradient(135deg, #a78bfa, #ec4899);
                     border-color: transparent;
                     color: white;
-                    box-shadow: 0 8px 25px rgba(167, 139, 250, 0.4);
+                    box-shadow: 0 0 30px rgba(167, 139, 250, 0.4);
                 }
 
-                .friends-tab i {
-                    font-size: 20px;
+                .friends-tab.active i {
+                    animation: spin 0.5s ease-out;
+                }
+
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
 
                 /* ===== MAIN GRID ===== */
                 .friends-main-grid {
                     display: grid;
                     grid-template-columns: 2fr 1fr;
-                    gap: 30px;
-                    animation: fadeInUp 1s ease 0.4s both;
-                }
-
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    gap: 40px;
+                    align-items: start;
                 }
 
                 .friends-main-content {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 30px;
+                    background: rgba(17, 24, 39, 0.6);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 24px;
+                    padding: 30px;
+                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+                    animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    min-height: 500px; /* Chiều cao tối thiểu để đẹp */
                 }
 
-                /* ===== INFO SIDEBAR ===== */
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(40px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                /* ===== SIDEBAR ===== */
                 .friends-info-sidebar {
-                    position: sticky;
-                    top: 100px;
-                    height: fit-content;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 25px;
                 }
 
                 .info-card {
-                    background: rgba(255, 255, 255, 0.05);
+                    background: rgba(255, 255, 255, 0.03);
                     backdrop-filter: blur(20px);
-                    border: 2px solid rgba(167, 139, 250, 0.3);
-                    border-radius: 20px;
+                    border: 1px solid rgba(167, 139, 250, 0.2);
+                    border-radius: 24px;
                     padding: 30px;
-                    transition: all 0.3s ease;
+                    transition: all 0.4s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .info-card::after {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; width: 100%; height: 2px;
+                    background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+                    transform: translateX(-100%);
+                    animation: shimmer 3s infinite;
+                }
+
+                @keyframes shimmer {
+                    100% { transform: translateX(100%); }
                 }
 
                 .info-card:hover {
                     border-color: rgba(167, 139, 250, 0.5);
-                    box-shadow: 0 10px 30px rgba(167, 139, 250, 0.2);
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 40px rgba(167, 139, 250, 0.15);
                 }
 
                 .info-card-header {
                     display: flex;
                     align-items: center;
-                    gap: 12px;
+                    gap: 15px;
                     margin-bottom: 20px;
                 }
 
                 .info-card-icon {
                     font-size: 2rem;
                     color: #a78bfa;
+                    filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.4));
                 }
 
                 .info-card-title {
-                    font-size: 1.5rem;
+                    font-size: 1.25rem;
                     font-weight: 700;
                     color: white;
-                }
-
-                .info-card-content {
-                    color: rgba(255, 255, 255, 0.7);
-                    line-height: 1.8;
-                    font-size: 1rem;
-                }
-
-                .info-card-content p {
-                    margin-bottom: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
                 }
 
                 .info-feature {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                    padding: 12px;
-                    background: rgba(255, 255, 255, 0.03);
-                    border-radius: 10px;
-                    margin-bottom: 10px;
+                    gap: 15px;
+                    padding: 12px 15px;
+                    background: rgba(0, 0, 0, 0.2);
+                    border-radius: 12px;
+                    margin-bottom: 12px;
                     transition: all 0.3s ease;
+                    border: 1px solid transparent;
                 }
 
                 .info-feature:hover {
-                    background: rgba(255, 255, 255, 0.05);
+                    background: rgba(167, 139, 250, 0.1);
+                    border-color: rgba(167, 139, 250, 0.3);
                     transform: translateX(5px);
                 }
 
                 .info-feature i {
-                    font-size: 20px;
                     color: #ec4899;
+                    font-size: 1.2rem;
                 }
 
-                /* ===== RESPONSIVE ===== */
+                .info-feature span {
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 0.95rem;
+                }
+
+                /* RESPONSIVE */
                 @media (max-width: 1024px) {
                     .friends-main-grid {
                         grid-template-columns: 1fr;
                     }
-
                     .friends-info-sidebar {
-                        position: relative;
-                        top: 0;
+                        order: -1; /* Đưa info lên trên hoặc để dưới tùy ý */
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
                     }
                 }
-
+                
                 @media (max-width: 768px) {
-                    .friends-cosmic-container {
-                        padding: 60px 15px 40px;
-                    }
-
-                    .friends-title {
-                        font-size: 2.5rem;
-                    }
-
-                    .friends-tabs {
-                        flex-direction: column;
-                        align-items: stretch;
-                    }
-
-                    .friends-tab {
-                        justify-content: center;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .friends-title {
-                        font-size: 2rem;
-                    }
-
-                    .info-card {
-                        padding: 20px;
-                    }
+                    .friends-cosmic-container { padding: 80px 20px 40px; }
+                    .friends-title { font-size: 2.5rem; }
+                    .friends-info-sidebar { grid-template-columns: 1fr; }
+                    .friends-tabs { flex-wrap: wrap; }
+                    .friends-tab { width: 100%; justify-content: center; }
                 }
             `}</style>
 
@@ -317,7 +289,7 @@ const FriendsPage = () => {
                         <h1 className="friends-title">Bạn Bè</h1>
                     </div>
                     <p className="friends-subtitle">
-                        Kết nối và quản lý danh sách bạn bè của bạn
+                        Kết nối vũ trụ - Mở rộng thế giới game của bạn
                     </p>
                 </div>
 
@@ -357,40 +329,37 @@ const FriendsPage = () => {
                             <div className="info-card-content">
                                 <div className="info-feature">
                                     <i className="bx bx-search"></i>
-                                    <span>Tìm kiếm người dùng theo tên</span>
+                                    <span>Nhập tên để tìm kiếm người chơi</span>
                                 </div>
                                 <div className="info-feature">
                                     <i className="bx bx-user-plus"></i>
-                                    <span>Gửi lời mời kết bạn</span>
+                                    <span>Gửi lời mời kết bạn để kết nối</span>
                                 </div>
                                 <div className="info-feature">
                                     <i className="bx bx-check-circle"></i>
-                                    <span>Chấp nhận lời mời</span>
-                                </div>
-                                <div className="info-feature">
-                                    <i className="bx bx-message-dots"></i>
-                                    <span>Nhắn tin với bạn bè</span>
+                                    <span>Kiểm tra tab "Lời mời" thường xuyên</span>
                                 </div>
                                 <div className="info-feature">
                                     <i className="bx bx-game"></i>
-                                    <span>Mời chơi game cùng nhau</span>
+                                    <span>Chuột phải vào bạn bè để mời game</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="info-card" style={{ marginTop: '20px' }}>
+                        <div className="info-card">
                             <div className="info-card-header">
                                 <i className="bx bxs-star info-card-icon"></i>
                                 <h3 className="info-card-title">Trạng thái</h3>
                             </div>
                             <div className="info-card-content">
-                                <p>
-                                    Danh sách bạn bè và trạng thái online được hiển thị 
-                                    ở thanh bên phải màn hình.
-                                </p>
-                                <p>
-                                    Nhấp chuột phải vào bạn bè để xem thêm tùy chọn.
-                                </p>
+                                <div className="info-feature">
+                                    <i className="bx bxs-circle" style={{color: '#10b981'}}></i>
+                                    <span>Xanh lá: Đang Online</span>
+                                </div>
+                                <div className="info-feature">
+                                    <i className="bx bxs-circle" style={{color: '#6b7280'}}></i>
+                                    <span>Xám: Offline</span>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-// src/context/AuthProvider.jsx
+// src/context/AuthContext.jsx - FIX LỖI INCLUDES
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as api from '../services/api';
@@ -14,23 +14,17 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [history, setHistory] = useState([]);
 
-    // ============================================
-    // 📜 Hàm lấy lịch sử (giữ nguyên)
-    // ============================================
     const fetchHistory = async (key) => { 
         if (!key) return;
         try {
             const historyData = await api.getHistory(key);
-            setHistory(historyData);
+            setHistory(Array.isArray(historyData) ? historyData : []);
         } catch (error) {
             console.error("Không thể tải lịch sử:", error);
             setHistory([]);
         }
     };
 
-    // ============================================
-    // 🔄 Hàm làm mới token (giữ nguyên)
-    // ============================================
     const handleTokenRefresh = async () => {
         const storedRefreshToken = localStorage.getItem('refreshToken');
         if (!storedRefreshToken) return false;
@@ -49,9 +43,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // ============================================
-    // 🧹 Hàm xóa dữ liệu xác thực (giữ nguyên)
-    // ============================================
     const clearAuthData = () => {
         localStorage.removeItem('apiKey');
         localStorage.removeItem('accessToken');
@@ -61,17 +52,13 @@ export const AuthProvider = ({ children }) => {
         setAccessToken(null);
         setRefreshToken(null);
         setHistory([]);
-        websocketService.disconnect(); // Đảm bảo ngắt kết nối WebSocket
+        websocketService.disconnect();
     };
 
-    // ============================================
-    // 🚀 HOOK USEEFFECT - XÁC THỰC KHI TẢI TRANG
-    // ============================================
     useEffect(() => {
         const validateSessionOnLoad = async () => {
             console.log('🔍 [AuthContext] Đang kiểm tra session...');
 
-            // === BƯỚC 1: Kiểm tra Access Token ===
             const tokenFromStorage = localStorage.getItem('accessToken');
             const keyFromStorage = localStorage.getItem('apiKey');
             const refreshTokenFromStorage = localStorage.getItem('refreshToken');
@@ -83,253 +70,112 @@ export const AuthProvider = ({ children }) => {
             }
             
             try {
-                // === BƯỚC 2: Xác thực bằng JWT Token ===
                 console.log('🔐 [AuthContext] Đang xác thực Access Token...');
                 const userData = await api.validateToken(tokenFromStorage);
                 
                 console.log('✅ [AuthContext] Xác thực thành công:', userData);
 
-                // === BƯỚC 3: Cập nhật State ===
                 setUser(userData);
                 setAccessToken(tokenFromStorage);
                 setApiKey(keyFromStorage);
                 setRefreshToken(refreshTokenFromStorage);
 
-                // === BƯỚC 4: Tải dữ liệu phụ (history, websocket) ===
                 if (keyFromStorage) {
                     await fetchHistory(keyFromStorage);
                     websocketService.connect(keyFromStorage);
                 }
 
             } catch (error) {
-                console.error('❌ [AuthContext] Xác thực thất bại:', error.message);
+                // ← FIX: Kiểm tra kỹ error trước khi dùng includes
+                console.error('❌ [AuthContext] Xác thực thất bại:', error);
 
-                // === BƯỚC 5: Thử làm mới token nếu hết hạn ===
-                if (error.message.includes('hết hạn') || error.message.includes('expired')) {
-                    console.log('🔄 [AuthContext] Đang thử làm mới token...');
+                // Kiểm tra error.message tồn tại và là string
+                const errorMessage = error && typeof error.message === 'string' ? error.message : '';
+                const errorStatus = error && typeof error.status === 'number' ? error.status : 0;
+
+                // Kiểm tra nếu token hết hạn (403 hoặc message chứa "expired"/"hết hạn")
+                if (errorStatus === 403 || 
+                    errorMessage.toLowerCase().includes('hết hạn') || 
+                    errorMessage.toLowerCase().includes('expired')) {
+                    
+                    console.log('🔄 [AuthContext] Token hết hạn, đang thử làm mới...');
                     const refreshSuccess = await handleTokenRefresh();
                     
                     if (refreshSuccess) {
-                        console.log('✅ [AuthContext] Làm mới token thành công, thử lại...');
-                        // Gọi lại hàm này để xác thực với token mới
+                        console.log('✅ [AuthContext] Làm mới token thành công');
                         return validateSessionOnLoad();
                     }
                 }
 
-                // === BƯỚC 6: Xóa dữ liệu nếu không thể khôi phục ===
                 console.log('🧹 [AuthContext] Đang xóa session không hợp lệ...');
                 clearAuthData();
-
             } finally {
                 setIsLoading(false);
             }
         };
 
         validateSessionOnLoad();
-    }, []); // Chỉ chạy 1 lần khi mount
+    }, []);
 
-    // ============================================
-    // 📝 HÀM ĐĂNG KÝ (giữ nguyên)
-    // ============================================
-    const register = async (username, email, password) => {
-        try {
-            const response = await api.register(username, email, password);
-            return {
-                success: true,
-                message: response.message || 'Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.' 
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            };
-        }
-    };
-
-    // ============================================
-    // 🔐 HÀM ĐĂNG NHẬP (giữ nguyên)
-    // ============================================
     const login = async (username, password) => {
         try {
-            const response = await api.login(username, password);
+            console.log('🔐 [AuthContext] Đang đăng nhập...');
+            const result = await api.login(username, password);
             
-            console.log('✅ [AuthContext] Đăng nhập thành công:', response);
+            console.log('✅ [AuthContext] Đăng nhập thành công:', result);
 
-            // Cập nhật state
-            setUser({
-                username: response.username,
-                email: response.email,
-            });
-            setApiKey(response.apiKey);
-            setAccessToken(response.accessToken);
-            setRefreshToken(response.refreshToken);
-
-            // Lưu vào localStorage
-            localStorage.setItem('apiKey', response.apiKey);
-            localStorage.setItem('accessToken', response.accessToken);
-            localStorage.setItem('refreshToken', response.refreshToken);
+            setUser(result.user);
+            setApiKey(result.apiKey);
+            setAccessToken(result.accessToken);
+            setRefreshToken(result.refreshToken);
             
-            // Tải dữ liệu phụ
-            await fetchHistory(response.apiKey);
-            websocketService.connect(response.apiKey);
-
-            return {
-                success: true,
-                message: 'Đăng nhập thành công!'
-            };
+            localStorage.setItem('apiKey', result.apiKey);
+            localStorage.setItem('accessToken', result.accessToken);
+            localStorage.setItem('refreshToken', result.refreshToken);
+            
+            await fetchHistory(result.apiKey);
+            websocketService.connect(result.apiKey);
+            
+            return result;
         } catch (error) {
-            console.error('❌ [AuthContext] Đăng nhập thất bại:', error.message);
-            return {
-                success: false,
-                message: error.message
-            };
+            console.error('❌ [AuthContext] Lỗi đăng nhập:', error);
+            throw error;
         }
     };
 
-    // ============================================
-    // 🚪 HÀM ĐĂNG XUẤT (sửa lỗi typo)
-    // ============================================
     const logout = async () => {
         try {
             if (accessToken && refreshToken) {
                 await api.logout(accessToken, refreshToken);
             }
         } catch (error) {
-            console.error("Lỗi khi đăng xuất:", error.message);
+            console.error('Logout error:', error);
         } finally {
             clearAuthData();
         }
     };
 
-    // ============================================
-    // 📧 HÀM GỬI LẠI EMAIL XÁC MINH (giữ nguyên)
-    // ============================================
-    const resendVerificationEmail = async (email) => {
-        try {
-            const response = await api.resendVerificationEmail(email);
-            return {
-                success: true,
-                message: response.message
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            };
-        }
-    };
-
-    // ============================================
-    // 🔑 CÁC HÀM QUÊN MẬT KHẨU (giữ nguyên)
-    // ============================================
-    const forgotPassword = async (email) => {
-        try {
-            const response = await api.forgotPassword(email);
-            return {
-                success: true,
-                message: response.message
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            };
-        }
-    };
-
-    const checkResetToken = async (token) => {
-        try {
-            const response = await api.checkResetToken(token);
-            return {
-                success: true,
-                message: response.message
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            };
-        }
-    };
-
-    const resetPassword = async (token, newPassword) => {
-        try {
-            const response = await api.resetPassword(token, newPassword);
-            return {
-                success: true,
-                message: response.message
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error.message
-            };
-        }
-    };
-
-    // ============================================
-    // 💾 HÀM LƯU LỊCH SỬ GAME (giữ nguyên)
-    // ============================================
-    const saveGameHistory = async (gameData) => {
-        if (!apiKey) {
-            console.error("Không thể lưu game, người dùng chưa đăng nhập.");
-            return;
-        }
-        try {
-            await api.saveGameToHistory(apiKey, gameData);
-            console.log("Lịch sử game đã được lưu thành công.");
-            await fetchHistory(apiKey);
-        } catch (error) {
-            console.error("Lỗi khi lưu lịch sử game qua context:", error.message);
-        }
-    };
-
-    // ============================================
-    // 🔄 HÀM LÀM MỚI LỊCH SỬ (giữ nguyên)
-    // ============================================
-    const refreshHistory = async () => {
-        if (!apiKey) return;
-        console.log("Forcing history refresh from profile request...");
-        await fetchHistory(apiKey);
-    };
-
-    // ============================================
-    // 📦 CONTEXT VALUE
-    // ============================================
-    const value = {
-        user,
-        apiKey,
-        accessToken, // Sửa typo: accesesToken → accessToken
-        refreshToken,
-        isAuthenticated: !!user,
-        isLoading,
-        history,
-        login,
-        register,
-        logout,
-        resendVerificationEmail,
-        forgotPassword,
-        checkResetToken,
-        resetPassword,
-        saveGameHistory,
-        refreshHistory,
-        handleTokenRefresh,
-    };
-
     return (
-        <AuthContext.Provider value={value}>
-            {!isLoading && children}
+        <AuthContext.Provider value={{
+            user,
+            apiKey,
+            accessToken,
+            refreshToken,
+            isLoading,
+            history,
+            login,
+            logout,
+            fetchHistory
+        }}>
+            {children}
         </AuthContext.Provider>
     );
 };
 
-// ============================================
-// 🪝 CUSTOM HOOK
-// ============================================
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth phải được sử dụng bên trong AuthProvider');
+        throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
 };

@@ -9,7 +9,7 @@ import FriendsPage from './components/FriendsPage/FriendsPage.jsx';
 import FriendsSidebar from './components/FriendsPage/FriendsSidebar.jsx';
 import { HistoryDisplay } from './components/main-function/history';
 import { gameList } from './GameList';
-import ChatTray from './components/chat/ChatTray.jsx';
+import ChatBubble from './components/chat/ChatBubble.jsx';
 import GameInviteManager from './components/main-function/GameInviteManager.jsx';
 import GameLibrary from './components/Game/GameLibrary';
 import ShopPage from './pages/ShopPage'; // ✅ ĐÃ IMPORT
@@ -116,7 +116,7 @@ const MainApp = () => {
                 <FriendsSidebar />
             </div>
             
-            <ChatTray />
+            
             <GameInviteManager />
         </div>
     );

@@ -20,7 +20,7 @@ const useClickOutside = (ref, callback) => {
     }, [ref, callback]);
 };
 
-const Header = ({ onNavigate, currentView, user, onLogout }) => {
+const Header = ({ onNavigate, currentView, user, onLogout, onToggleFriends }) => { // ✅ Nhận prop onToggleFriends
     const [isScrolled, setIsScrolled] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -45,9 +45,9 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
     const navItems = [
         { id: 'home', label: 'Trang Chủ', icon: 'bxs-home' },
         { id: 'games', label: 'Trò Chơi', icon: 'bxs-joystick' },
-        { id: 'shop', label: 'Shop', icon: 'bx-shopping-bag' }, // ✅ ADDED
+        { id: 'shop', label: 'Shop', icon: 'bx-shopping-bag' },
         { id: 'history', label: 'Lịch Sử', icon: 'bxs-time' },
-        { id: 'friends', label: 'Bạn Bè', icon: 'bxs-group' }
+        // Đã xóa mục 'friends' ở đây vì giờ nó là nút riêng bên phải
     ];
 
     const getNotificationIcon = (type) => {
@@ -122,6 +122,19 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
 
                     {/* ===== RIGHT: USER ACTIONS ===== */}
                     <div className="header-right">
+                        
+                        {/* ✅ NÚT BẠN BÈ MỚI (Friends Drawer Toggle) */}
+                        <div className="header-action-item">
+                            <button
+                                onClick={onToggleFriends}
+                                className="header-action-button relative group"
+                                title="Danh sách bạn bè"
+                            >
+                                <i className="bx bxs-group group-hover:text-indigo-400 transition-colors" />
+                                {/* Có thể thêm badge count ở đây nếu cần */}
+                            </button>
+                        </div>
+
                         {/* Profile Button */}
                         <button
                             onClick={() => setShowProfile(true)}

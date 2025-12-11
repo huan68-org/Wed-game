@@ -2,232 +2,173 @@
 
 import React from 'react';
 
-const PackCard = ({ pack, onBuy }) => {
-    // ✅ KIỂM TRA pack tồn tại
-    if (!pack) {
-        console.error('❌ [PackCard] Pack is undefined');
-        return null;
-    }
+const PackCard = ({ pack, onBuy, isHero = false }) => {
+    if (!pack) return null;
 
-    // ✅ DESTRUCTURE với default values
-    const {
-        id,
-        name = 'Unknown Pack',
-        price = 0,
-        cards = 0,
-        rarity = 'common',
-        image = '🎁',
-        description = 'No description'
-    } = pack;
+    const { name, price, cards, rarity, image, description } = pack;
 
-    const handleBuy = () => {
-        console.log('💰 [PackCard] Buying:', name);
-        if (onBuy) {
-            onBuy(pack);
-        }
+    // Config màu sắc dựa trên rarity
+    const rarityConfig = {
+        common: { color: '#94a3b8', bg: 'linear-gradient(145deg, #1e293b, #0f172a)' },
+        rare: { color: '#3b82f6', bg: 'linear-gradient(145deg, #1e3a8a, #172554)' },
+        epic: { color: '#a855f7', bg: 'linear-gradient(145deg, #581c87, #3b0764)' },
+        legendary: { color: '#f59e0b', bg: 'linear-gradient(145deg, #78350f, #451a03)' }
     };
 
-    // ✅ Rarity color - KHÔNG DÙNG charAt
-    const getRarityColor = () => {
-        const rarityLower = String(rarity).toLowerCase();
-        
-        switch (rarityLower) {
-            case 'common':
-                return 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)';
-            case 'rare':
-                return 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)';
-            case 'epic':
-                return 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)';
-            case 'legendary':
-                return 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)';
-            default:
-                return 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)';
-        }
-    };
+    const theme = rarityConfig[rarity?.toLowerCase()] || rarityConfig.common;
 
     return (
-        <div className="pack-card">
-            <div className="pack-image" style={{ background: getRarityColor() }}>
-                <span className="pack-emoji">{image}</span>
-            </div>
+        <div className={`pack-container ${isHero ? 'hero-mode' : ''}`}>
+            <style>{`
+                .pack-container {
+                    perspective: 1000px;
+                }
 
-            <div className="pack-info">
-                <h3 className="pack-name">{name}</h3>
-                <p className="pack-description">{description}</p>
-                
-                <div className="pack-details">
-                    <div className="detail-item">
-                        <span className="detail-icon">🎴</span>
-                        <span className="detail-text">{cards} Cards</span>
-                    </div>
-                    <div className="detail-item">
-                        <span className="detail-icon">⭐</span>
-                        <span className="detail-text">{rarity}</span>
-                    </div>
-                </div>
-
-                <div className="pack-footer">
-                    <div className="pack-price">
-                        <span className="price-icon">💰</span>
-                        <span className="price-amount">{price}</span>
-                    </div>
-                    <button 
-                        className="buy-button"
-                        onClick={handleBuy}
-                    >
-                        Buy Now
-                    </button>
-                </div>
-            </div>
-
-            <style jsx>{`
-                .pack-card {
-                    background: rgba(15, 12, 41, 0.8);
+                .pack-card-inner {
+                    position: relative;
+                    background: rgba(15, 23, 42, 0.6);
                     backdrop-filter: blur(20px);
-                    border-radius: 20px;
-                    border: 2px solid rgba(139, 92, 246, 0.3);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 24px;
+                    padding: 24px;
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    cursor: pointer;
                     overflow: hidden;
-                    transition: all 0.3s ease;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
                 }
 
-                .pack-card:hover {
-                    transform: translateY(-10px);
-                    border-color: rgba(139, 92, 246, 0.6);
-                    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.4);
+                /* HOVER EFFECTS */
+                .pack-card-inner:hover {
+                    transform: translateY(-10px) rotateX(5deg);
+                    border-color: ${theme.color};
+                    box-shadow: 0 20px 50px -12px ${theme.color}40; /* 40 is opacity hex */
+                }
+                
+                .hero-mode .pack-card-inner {
+                    border: 2px solid ${theme.color};
+                    background: rgba(0,0,0,0.8);
                 }
 
-                .pack-image {
-                    height: 200px;
+                /* IMAGE AREA */
+                .pack-visual {
+                    height: 160px;
+                    background: ${theme.bg};
+                    border-radius: 16px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .pack-image::before {
-                    content: '';
-                    position: absolute;
-                    top: -50%;
-                    left: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-                    animation: rotate 10s linear infinite;
-                }
-
-                @keyframes rotate {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-
-                .pack-emoji {
                     font-size: 5rem;
-                    position: relative;
-                    z-index: 1;
-                    animation: float 3s ease-in-out infinite;
-                }
-
-                @keyframes float {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-20px); }
-                }
-
-                .pack-info {
-                    padding: 25px;
-                }
-
-                .pack-name {
-                    margin: 0 0 10px 0;
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                    color: white;
-                    text-align: center;
-                }
-
-                .pack-description {
-                    margin: 0 0 20px 0;
-                    font-size: 0.9rem;
-                    color: rgba(255, 255, 255, 0.7);
-                    text-align: center;
-                }
-
-                .pack-details {
-                    display: flex;
-                    justify-content: space-around;
                     margin-bottom: 20px;
-                    padding: 15px;
-                    background: rgba(0, 0, 0, 0.3);
-                    border-radius: 12px;
+                    position: relative;
+                    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
                 }
 
-                .detail-item {
+                .visual-emoji {
+                    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+                    transition: transform 0.5s ease;
+                }
+
+                .pack-card-inner:hover .visual-emoji {
+                    transform: scale(1.2) rotate(-10deg);
+                }
+
+                /* INFO AREA */
+                .pack-content {
+                    flex: 1;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
-                    gap: 5px;
                 }
 
-                .detail-icon {
+                .pack-badge {
+                    align-self: flex-start;
+                    padding: 4px 12px;
+                    border-radius: 100px;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    background: ${theme.color}20;
+                    color: ${theme.color};
+                    border: 1px solid ${theme.color}40;
+                    margin-bottom: 12px;
+                }
+
+                .pack-title {
                     font-size: 1.5rem;
-                }
-
-                .detail-text {
-                    font-size: 0.85rem;
-                    font-weight: 600;
+                    font-weight: 700;
                     color: white;
-                    text-transform: capitalize;
+                    margin-bottom: 8px;
                 }
 
+                .pack-desc {
+                    font-size: 0.9rem;
+                    color: #94a3b8;
+                    margin-bottom: 20px;
+                    line-height: 1.5;
+                }
+
+                /* FOOTER AREA */
                 .pack-footer {
+                    margin-top: auto;
                     display: flex;
+                    align-items: center;
                     justify-content: space-between;
-                    align-items: center;
-                    gap: 15px;
+                    padding-top: 20px;
+                    border-top: 1px solid rgba(255,255,255,0.1);
                 }
 
-                .pack-price {
+                .price-tag {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
-                    padding: 10px 20px;
-                    background: rgba(251, 191, 36, 0.2);
-                    border: 2px solid rgba(251, 191, 36, 0.4);
-                    border-radius: 12px;
-                }
-
-                .price-icon {
-                    font-size: 1.3rem;
-                }
-
-                .price-amount {
+                    gap: 6px;
                     font-size: 1.2rem;
                     font-weight: 700;
                     color: #fbbf24;
                 }
 
-                .buy-button {
-                    flex: 1;
-                    padding: 12px 24px;
-                    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-                    border: none;
+                .buy-btn-mini {
+                    width: 40px;
+                    height: 40px;
                     border-radius: 12px;
+                    background: white;
+                    border: none;
+                    color: black;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    transition: all 0.2s;
+                }
+                
+                .pack-card-inner:hover .buy-btn-mini {
+                    background: ${theme.color};
                     color: white;
-                    font-size: 1rem;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
                 }
 
-                .buy-button:hover {
-                    transform: scale(1.05);
-                    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
-                }
-
-                .buy-button:active {
-                    transform: scale(0.98);
-                }
             `}</style>
+
+            <div className="pack-card-inner" onClick={() => onBuy(pack)}>
+                <div className="pack-visual">
+                    <div className="visual-emoji">{image}</div>
+                </div>
+
+                <div className="pack-content">
+                    <span className="pack-badge">{rarity} Tier</span>
+                    <h3 className="pack-title">{name}</h3>
+                    <p className="pack-desc">{description}</p>
+                </div>
+
+                <div className="pack-footer">
+                    <div className="price-tag">
+                        <span>{price}</span>
+                        <span style={{fontSize: '0.9em'}}>💰</span>
+                    </div>
+                    <button className="buy-btn-mini">
+                        <i className='bx bx-cart-alt'></i>
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

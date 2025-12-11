@@ -1,0 +1,298 @@
+/* src/games/PacMan/components/GameUI.css */
+
+.game-ui {
+    position: relative;
+    width: 100%;
+    pointer-events: none;
+}
+
+.stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    pointer-events: auto;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(15, 12, 41, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    min-width: 180px;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 0 15px 50px rgba(139, 92, 246, 0.4);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Score Card */
+.score-card {
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+.score-card:hover {
+    border-color: rgba(251, 191, 36, 0.7);
+    box-shadow: 0 15px 50px rgba(251, 191, 36, 0.3);
+}
+
+.score-value {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Lives Card */
+.lives-card {
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.lives-card:hover {
+    border-color: rgba(239, 68, 68, 0.7);
+    box-shadow: 0 15px 50px rgba(239, 68, 68, 0.3);
+}
+
+.lives-value {
+    font-size: 1.5rem;
+    letter-spacing: 5px;
+}
+
+/* Level Card */
+.level-card {
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.level-card:hover {
+    border-color: rgba(16, 185, 129, 0.7);
+    box-shadow: 0 15px 50px rgba(16, 185, 129, 0.3);
+}
+
+.level-value {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* High Score Card */
+.highscore-card {
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+.highscore-card:hover {
+    border-color: rgba(139, 92, 246, 0.7);
+    box-shadow: 0 15px 50px rgba(139, 92, 246, 0.3);
+}
+
+.highscore-value {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Combo Indicator */
+.combo-indicator {
+    position: fixed;
+    top: 50%;
+    right: 50px;
+    transform: translateY(-50%);
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.combo-content {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.95) 0%, rgba(59, 130, 246, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 3px solid rgba(6, 182, 212, 0.5);
+    padding: 20px 30px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(6, 182, 212, 0.5);
+    animation: bounceIn 0.5s ease, pulse 1s ease-in-out infinite;
+    position: relative;
+    z-index: 2;
+}
+
+.combo-multiplier {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+}
+
+.combo-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 2px;
+    margin-top: 5px;
+}
+
+.combo-glow {
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%);
+    border-radius: 30px;
+    animation: glowPulse 1.5s ease-in-out infinite;
+    z-index: 1;
+}
+
+/* Power Mode Indicator */
+.power-mode-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50px;
+    transform: translateY(-50%);
+    z-index: 100;
+    pointer-events: auto;
+    width: 200px;
+}
+
+.power-mode-content {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 3px solid rgba(16, 185, 129, 0.5);
+    padding: 15px 20px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(16, 185, 129, 0.5);
+    animation: bounceIn 0.5s ease, shake 0.5s ease-in-out infinite;
+    margin-bottom: 10px;
+}
+
+.power-mode-icon {
+    font-size: 2.5rem;
+    animation: rotate 2s linear infinite;
+}
+
+.power-mode-text {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 1px;
+    margin-top: 5px;
+}
+
+.power-mode-progress {
+    width: 100%;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(16, 185, 129, 0.5);
+}
+
+.power-mode-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+    transition: width 0.1s linear;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes bounceIn {
+    0% { transform: translateY(-50%) scale(0); opacity: 0; }
+    50% { transform: translateY(-50%) scale(1.1); }
+    100% { transform: translateY(-50%) scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.05); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .combo-indicator {
+        right: 20px;
+    }
+    
+    .power-mode-indicator {
+        left: 20px;
+        width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-bar {
+        gap: 10px;
+    }
+    
+    .stat-card {
+        min-width: 150px;
+        padding: 12px 20px;
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .combo-indicator,
+    .power-mode-indicator {
+        position: static;
+        transform: none;
+        margin: 10px auto;
+        width: auto;
+    }
+}
