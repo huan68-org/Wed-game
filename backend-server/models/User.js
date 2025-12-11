@@ -62,7 +62,12 @@ const userSchema = new Schema({
     inventory: [{                             
         cardId: { type: Schema.Types.ObjectId, ref: 'Card' },
         quantity: { type: Number, default: 1 }
-    }]
+    }],
+
+    cardCollection: {
+        type: Schema.Types.Mixed,
+        default: {}
+    }
 
 }, { timestamps: true });
 

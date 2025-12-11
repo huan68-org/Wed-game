@@ -20,6 +20,7 @@
     "mongoose": "^8.16.5",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.10",
+    "pokemontcgsdk": "^2.0.0",
     "uuid": "^11.1.0",
     "ws": "^8.18.3"
   },

@@ -7,6 +7,7 @@ const { WebSocketServer } = require('ws');
 const path = require('path');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
+const pokemon = require('pokemontcgsdk');
 
 const User = require('./models/User');
 const { PORT, MONGO_URI } = require('./config/env');
@@ -14,6 +15,7 @@ const { PORT, MONGO_URI } = require('./config/env');
 // Import friendService và chatService
 const friendService = require('./services/friend.services'); 
 const chatService = require('./services/chat.services'); 
+const CardService = require('./services/card.services.js');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -24,6 +26,8 @@ const chatRoutes = require('./routes/chat.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const shopRoutes = require("./routes/shop.route");
 const gameRoutes = require("./routes/game.route");
+const cardRoutes = require("./routes/card.routes");
+const cardPackRoutes = require("./routes/card.pack.routes");
 
 // Import game logic (giữ nguyên)
 const { handleCaroEvents, caroGames, createCaroGame, resetGame: resetCaroGame } = require('./game-logic/caro.js');
@@ -34,6 +38,11 @@ const { handleLeaveGame: originalLeaveHandler } = require('./game-logic/gameSess
 const { handlePostGameAction } = require('./game-logic/postGameActionHandler.js');
 const { handleDirectMessage } = require('./game-logic/chatHandler.js');
 const { createHistorySavingHandler } = require('./game-logic/historySaver.js');
+const { time } = require('console');
+
+pokemon.configure({apiKey: process.env.your_api_key,
+    // timeout: 20000
+});
 
 // MongoDB connection
 mongoose.connect(MONGO_URI)
@@ -73,6 +82,9 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/game", gameRoutes);
+app.use("/api/card", cardRoutes);
+app.use("/api/card-pack", cardPackRoutes);
+
 // WebSocket upgrade handler (giữ nguyên)
 server.on('upgrade', async (request, socket, head) => {
     const { query } = url.parse(request.url, true);
@@ -243,6 +255,45 @@ wss.on('connection', async (ws, request, username) => {
         handleDisconnect(usernameToDisconnect, ws.roomId, { gameRegistry, clients });
     });
 });
+
+// app.get('/api/card/fetch-page', async (req, res) => {
+
+//     console.log(`[ROUTE] Yêu cầu GET /api/card/fetch-page đã nhận.`);
+//     const maxPageSize = 250;
+//     const page = parseInt(req.query.page) || 1;
+//     const pageSize = parseInt(req.query.pageSize) || 10;
+
+//     console.log(`[ROUTE] Tham số: page=${page}, pageSize=${pageSize}`);
+//     if(page < 1 || pageSize < 1 || pageSize > maxPageSize){
+//         console.warn(`[ROUTE] Tham số không hợp lệ. Trả về 400.`);
+//         return res.status(400).json({
+//             success: false,
+//             message: `Tham số page và pageSize không hợp lệ. page phải >= 1, pageSize phải trong khoảng 1-${maxPageSize}.`
+//         });
+//     }
+//     try{
+//         const result = await CardService.fetchPageAndSave(page, pageSize);
+//         console.log(`[ROUTE] Xử lý thành công. Tổng thẻ: ${result.count}`);
+//         return res.json({
+//             success: true,
+//             data: {
+//                 page: page,
+//                 pageSize: pageSize,
+//                 totalCardsSaved: result.count,
+//                 firstCardExample: result.firstCardName
+//             },
+//             message: `Lấy và lưu thẻ thành công ${result.count} thẻ tu Page ${page}!`
+//         });
+        
+//     }catch(error){
+//         console.error("LỖI GỌI API & SAVE DB:", error); 
+        
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message || 'Lỗi server khi lấy và lưu thẻ.'
+//         });
+//     }
+// });
 
 // Start server
 server.listen(PORT, () => {

@@ -10,6 +10,7 @@ import GameLibrary from '../Game/GameLibrary';  // ✅ SỬA: Import GameLibrary
 import History from '../history/History';
 import Friends from '../FriendsPage/FriendsPage';
 import LoadingSpinner from '../common/LoadingSpinner';
+import Shop from '../Shop/Shop';
 
 const Dashboard = () => {
     const { user, logout, isLoading } = useAuth();
@@ -102,6 +103,9 @@ const Dashboard = () => {
             
             case 'friends':
                 return <Friends />;
+            
+            case 'shop':
+                return <Shop />;
             
             default:
                 return <Hero onNavigate={handleNavigate} />;

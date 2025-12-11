@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const shopController = require("../../../../Wed-game/backend-server/controllers/shop.controller");
+const shopController = require("../controllers/shop.controller");
 const { authMiddleware } = require("../middlewares/auth.middlewares");
 
 router.post("/open-pack", authMiddleware, shopController.openPack);
