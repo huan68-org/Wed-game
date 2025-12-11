@@ -7,6 +7,7 @@ const PendingRequests = () => {
     const received = requests.filter(r => r.status === 'pending' || r.status === 'pending_received');
     const sent = requests.filter(r => r.status === 'sent' || r.status === 'pending_sent');
 
+
     if (isLoading) {
         return <div className="loading-container">
              <i className='bx bx-loader-alt bx-spin'></i> Đang tải dữ liệu...

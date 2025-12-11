@@ -13,6 +13,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import Shop from '../Shop/Shop';
 import FriendsDrawer from '../FriendsPage/FriendsDrawer'; // ✅ Import Drawer Mới
 
+
 const Dashboard = () => {
     const { user, logout, isLoading } = useAuth();
     const { addNotification } = useNotifications();
@@ -59,12 +60,26 @@ const Dashboard = () => {
     const renderContent = () => {
         if (isTransitioning) return <LoadingSpinner size="medium" message="Đang chuyển trang..." />;
         switch (currentView) {
-            case 'home': return <Hero onNavigate={handleNavigate} />;
-            case 'games': return <GameLibrary onPlay={handleNavigate} />;
-            case 'history': return <History />;
-            case 'friends': return <Friends />;
-            case 'shop': return <Shop/>;
-            default: return <Hero onNavigate={handleNavigate} />;
+            
+    
+            case 'home':
+                return <Hero onNavigate={handleNavigate} />;
+            
+            case 'games':
+                // ✅ SỬA: Dùng GameLibrary và truyền onPlay prop
+                return <GameLibrary onPlay={handleNavigate} />;
+            
+            case 'history':
+                return <History />;
+            
+            case 'friends':
+                return <Friends />;
+            
+            case 'shop':
+                return <Shop />;
+
+            default:
+                return <Hero onNavigate={handleNavigate} />;
         }
     };
 

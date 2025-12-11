@@ -8,7 +8,7 @@ const userSchema = new Schema({
         unique: true, 
         trim: true,     
         lowercase: true,
-        minlength: 3 // ✅ Thêm validation
+        minlength: 3
     },
     email: {
         type: String,
@@ -16,25 +16,17 @@ const userSchema = new Schema({
         unique: true,
         trim: true,
         lowercase: true,
-        match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ // ✅ Thêm validation
+        match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
     credentials: {
-        password: { type: String, required: true, minlength: 6 }, // ✅ Thêm validation
+        password: { type: String, required: true, minlength: 6 },
         apiKey: { type: String, required: true, unique: true }
     },
-    isVerified: {
-        type: Boolean,
-        default: false
-    },
-    verificationToken: {
-        type: String,
-        default: null
-    },
-    resetPasswordToken: {
-        type: String,
-        default: null
-    },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, default: null },
+    resetPasswordToken: { type: String, default: null },
     refreshToken: [{ type: String }],
+
     history: [{
         id: { type: String, required: true },
         date: { type: Date, default: Date.now },
@@ -45,6 +37,7 @@ const userSchema = new Schema({
         opponent: String,
         duration: Number
     }],
+
     friends: [{
         username: { type: String, required: true },
         status: { 
@@ -54,6 +47,7 @@ const userSchema = new Schema({
         },
         createdAt: { type: Date, default: Date.now }
     }],
+
     chatHistory: [{
         friendUsername: { type: String, required: true },
         messages: [{
@@ -61,12 +55,23 @@ const userSchema = new Schema({
             message: { type: String, required: true },
             timestamp: { type: Date, default: Date.now }
         }]
-    }]
-}, {
-    timestamps: true
-});
+    }],
 
-// ✅ Thêm indexes để tối ưu query
+    points: { type: Number, default: 1000 },  
+
+    inventory: [{                             
+        cardId: { type: Schema.Types.ObjectId, ref: 'Card' },
+        quantity: { type: Number, default: 1 }
+    }],
+
+    cardCollection: {
+        type: Schema.Types.Mixed,
+        default: {}
+    }
+
+}, { timestamps: true });
+
+// Index
 userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
 userSchema.index({ 'credentials.apiKey': 1 });

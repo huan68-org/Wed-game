@@ -143,9 +143,6 @@ export const clearHistory = async (apiKey) => {
     return handleResponse(response);
 };
 
-// ============================================
-// 👥 CÁC HÀM BẠN BÈ
-// ============================================
 
 export const getFriends = async (apiKey) => {
     const response = await fetch(`${API_URL}/friends`, {
@@ -195,10 +192,6 @@ export const searchUsers = async (apiKey, query) => {
     });
     return handleResponse(response);
 };
-
-// ============================================
-// 💬 HÀM CHAT
-// ============================================
 
 export const getChatHistory = async (apiKey, friendUsername) => {
     const response = await fetch(`${API_URL}/chat/${friendUsername}`, {
