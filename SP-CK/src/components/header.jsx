@@ -6,6 +6,7 @@ import { useNotifications } from '../context/NotificationContext';
 import ProfilePlayer from './ProfilePlayer';
 import { useAuth } from '../context/AuthContext';
 
+
 const useClickOutside = (ref, callback) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -20,7 +21,8 @@ const useClickOutside = (ref, callback) => {
     }, [ref, callback]);
 };
 
-const Header = ({ onNavigate, currentView, user, onLogout }) => {
+// ✅ FIX 1: Thêm onToggleFriends vào props để nhận hàm mở Drawer từ Dashboard
+const Header = ({ onNavigate, currentView, user, onLogout, onToggleFriends }) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -45,10 +47,22 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
     const navItems = [
         { id: 'home', label: 'Trang Chủ', icon: 'bxs-home' },
         { id: 'games', label: 'Trò Chơi', icon: 'bxs-joystick' },
-        { id: 'shop', label: 'Shop', icon: 'bx-shopping-bag' }, // ✅ ADDED
+        { id: 'friends', label: 'Bạn Bè', icon: 'bxs-group' },
+        { id: 'shop', label: 'Shop', icon: 'bx-shopping-bag' },
         { id: 'history', label: 'Lịch Sử', icon: 'bxs-time' },
-        { id: 'friends', label: 'Bạn Bè', icon: 'bxs-group' }
     ];
+
+    // ✅ FIX 2: Hàm xử lý click thông minh
+    const handleNavClick = (id) => {
+        // Nếu click vào 'friends' VÀ có hàm toggle (mở drawer) thì dùng toggle
+        if (id === 'friends' && onToggleFriends) {
+            onToggleFriends();
+        } else {
+            // Các mục khác thì chuyển trang bình thường
+            onNavigate(id);
+        }
+        setIsMobileMenuOpen(false);
+    };
 
     const getNotificationIcon = (type) => {
         switch (type) {
@@ -103,7 +117,8 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                         {navItems.map((item) => (
                             <button
                                 key={item.id}
-                                onClick={() => onNavigate(item.id)}
+                                // ✅ FIX 3: Gọi handleNavClick thay vì onNavigate trực tiếp
+                                onClick={() => handleNavClick(item.id)}
                                 className={`header-nav-button ${currentView === item.id ? 'active' : ''}`}
                             >
                                 {currentView === item.id && (
@@ -122,6 +137,18 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
 
                     {/* ===== RIGHT: USER ACTIONS ===== */}
                     <div className="header-right">
+                        
+                        {/* ✅ FIX 4: Thêm lại nút mở nhanh Friend Drawer ở góc phải */}
+                        <div className="header-action-item">
+                            <button
+                                onClick={onToggleFriends}
+                                className="header-action-button relative group"
+                                title="Danh sách bạn bè"
+                            >
+                                <i className="bx bxs-group group-hover:text-indigo-400 transition-colors" />
+                            </button>
+                        </div>
+
                         {/* Profile Button */}
                         <button
                             onClick={() => setShowProfile(true)}
@@ -269,10 +296,8 @@ const Header = ({ onNavigate, currentView, user, onLogout }) => {
                             {navItems.map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => {
-                                        onNavigate(item.id);
-                                        setIsMobileMenuOpen(false);
-                                    }}
+                                    // ✅ FIX 5: Mobile menu cũng dùng handleNavClick
+                                    onClick={() => handleNavClick(item.id)}
                                     className={`header-mobile-nav-item ${currentView === item.id ? 'active' : ''}`}
                                 >
                                     <i className={`bx ${item.icon}`} />

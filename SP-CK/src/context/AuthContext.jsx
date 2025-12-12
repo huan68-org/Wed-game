@@ -1,4 +1,4 @@
-// src/context/AuthContext.jsx - FIX SAFE VALIDATION
+// src/context/AuthContext.jsx - Đã sửa lỗi an toàn khi kiểm tra error
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as api from '../services/api';
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
         if (!key) return;
         try {
             const historyData = await api.getHistory(key);
+            // Đảm bảo historyData là array, nếu không thì dùng array rỗng
             setHistory(Array.isArray(historyData) ? historyData : []);
         } catch (error) {
             console.error("Không thể tải lịch sử:", error);
@@ -27,7 +28,10 @@ export const AuthProvider = ({ children }) => {
 
     const handleTokenRefresh = async () => {
         const storedRefreshToken = localStorage.getItem('refreshToken');
-        if (!storedRefreshToken) return false;
+        if (!storedRefreshToken) {
+            console.log('⚠️ [AuthContext] Không tìm thấy Refresh Token');
+            return false;
+        }
 
         try {
             const result = await api.refreshToken(storedRefreshToken);
@@ -37,7 +41,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('accessToken', newAccessToken);
             return true;
         } catch (error) {
-            console.error("Token refresh failed:", error);
+            console.error("❌ [AuthContext] Token refresh failed:", error);
             clearAuthData();
             return false;
         }
@@ -77,8 +81,8 @@ export const AuthProvider = ({ children }) => {
 
                 setUser(userData);
                 setAccessToken(tokenFromStorage);
-                setApiKey(keyFromStorage);
-                setRefreshToken(refreshTokenFromStorage);
+                setApiKey(keyFromStorage); // Giữ API Key nếu có
+                setRefreshToken(refreshTokenFromStorage); // Giữ Refresh Token nếu có
 
                 if (keyFromStorage) {
                     await fetchHistory(keyFromStorage);
@@ -86,24 +90,26 @@ export const AuthProvider = ({ children }) => {
                 }
 
             } catch (error) {
-                // ← FIX: Kiểm tra kỹ error trước khi dùng includes
                 console.error('❌ [AuthContext] Xác thực thất bại:', error);
 
-                // Kiểm tra error.message tồn tại và là string
+                // FIX: Kiểm tra error.message tồn tại và là string
                 const errorMessage = error && typeof error.message === 'string' ? error.message : '';
                 const errorStatus = error && typeof error.status === 'number' ? error.status : 0;
 
-                // Kiểm tra nếu token hết hạn (403 hoặc message chứa "expired"/"hết hạn")
-                if (errorStatus === 403 || 
+                // Kiểm tra nếu token hết hạn (403/401 hoặc message chứa "expired"/"hết hạn")
+                // Đã thêm 401 vì đây là status code phổ biến cho Unauthenticated
+                if (errorStatus === 403 || errorStatus === 401 || 
                     errorMessage.toLowerCase().includes('hết hạn') || 
-                    errorMessage.toLowerCase().includes('expired')) {
+                    errorMessage.toLowerCase().includes('expired') ||
+                    errorMessage.toLowerCase().includes('invalid token')) { // Thêm invalid token
                     
-                    console.log('🔄 [AuthContext] Token hết hạn, đang thử làm mới...');
+                    console.log('🔄 [AuthContext] Token hết hạn/không hợp lệ, đang thử làm mới...');
                     const refreshSuccess = await handleTokenRefresh();
                     
                     if (refreshSuccess) {
                         console.log('✅ [AuthContext] Làm mới token thành công');
-                        return validateSessionOnLoad();
+                        // Gọi lại hàm để xác thực Access Token mới
+                        return validateSessionOnLoad(); 
                     }
                 }
 
@@ -146,7 +152,10 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             if (accessToken && refreshToken) {
-                await api.logout(accessToken, refreshToken);
+                // Lỗi 403 ở đây có thể là do accessToken đã hết hạn,
+                // nhưng ta vẫn cố gắng gọi logout để server có cơ hội xóa refresh token
+                // Nếu thất bại, ta vẫn clear client side data.
+                await api.logout(accessToken, refreshToken); 
             }
         } catch (error) {
             console.error('Logout error:', error);
@@ -154,6 +163,9 @@ export const AuthProvider = ({ children }) => {
             clearAuthData();
         }
     };
+    
+    // Thêm hàm fetchHistory vào context value để component khác có thể gọi
+    const fetchHistoryWrapper = () => fetchHistory(apiKey);
 
     return (
         <AuthContext.Provider value={{
@@ -162,11 +174,11 @@ export const AuthProvider = ({ children }) => {
             accessToken,
             refreshToken,
             isLoading,
-            isAuthenticated: !!user, // Thêm dòng này để NotificationContext dùng
+            isAuthenticated: !!user,
             history,
             login,
             logout,
-            fetchHistory
+            fetchHistory: fetchHistoryWrapper // Dùng wrapper để không cần truyền apiKey
         }}>
             {children}
         </AuthContext.Provider>

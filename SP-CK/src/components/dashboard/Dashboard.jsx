@@ -14,6 +14,7 @@ import Shop from '../Shop/Shop';
 import FriendsDrawer from '../FriendsPage/FriendsDrawer'; // ✅ Import Drawer Mới
 
 
+
 const Dashboard = () => {
     const { user, logout, isLoading } = useAuth();
     const { addNotification } = useNotifications();

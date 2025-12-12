@@ -1,4 +1,4 @@
-// src/services/api.js - FIX HANDLE RESPONSE & NULL TOKEN
+// src/services/api.js - Đã sửa lỗi handleResponse
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -6,10 +6,12 @@ export const BASE_URL = API_URL.replace('/api', '');
 
 async function handleResponse(response) {
     if (!response.ok) {
+        // Cố gắng đọc JSON, nếu thất bại thì trả về thông báo lỗi chung
         const error = await response.json().catch(() => ({ 
             message: `Lỗi Server: ${response.status} ${response.statusText}` 
         }));
         
+        // Tạo Error object tùy chỉnh với status code để xử lý ở AuthContext
         const err = new Error(error.message || 'Đã có lỗi xảy ra');
         err.status = response.status; 
         throw err;
@@ -25,6 +27,7 @@ export const validateToken = async (accessToken) => {
     const response = await fetch(`${API_URL}/auth/me`, {
         method: 'GET',
         headers: { 
+            // Sử dụng Access Token để xác thực
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
         }
@@ -113,7 +116,7 @@ export const logout = async (accessToken, refreshToken) => {
 };
 
 // ============================================
-// 📜 CÁC HÀM HISTORY
+// 📜 CÁC HÀM HISTORY VÀ FRIEND (SỬ DỤNG API KEY CŨ)
 // ============================================
 
 export const getHistory = async (apiKey) => {
