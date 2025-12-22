@@ -191,8 +191,12 @@ export const removeFriend = async (apiKey, friendUsername) => {
 };
 
 export const searchUsers = async (apiKey, query) => {
-    const response = await fetch(`${API_URL}/users/search?q=${query}`, {
-        headers: { 'x-api-key': apiKey }
+    const response = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: { 
+            'x-api-key': apiKey,
+            'Content-Type': 'application/json'
+        }
     });
     return handleResponse(response);
 };

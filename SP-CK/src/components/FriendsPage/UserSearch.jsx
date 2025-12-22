@@ -1,4 +1,4 @@
-// src/components/FriendsPage/UserSearch.jsx
+// src/components/FriendsPage/UserSearch.jsx - ĐÃ SỬA HOÀN CHỈNH
 
 import React, { useState } from 'react';
 import * as api from '../../services/api.js';
@@ -16,9 +16,21 @@ const UserSearch = () => {
     const { friends, requests, sendFriendRequest } = useFriends();
     const { addNotification } = useNotifications();
 
+    // ✅ FIX 1: Safe guards - đảm bảo luôn là array
+    const safeFriends = Array.isArray(friends) ? friends : [];
+    const safeRequests = Array.isArray(requests) ? requests : [];
+
     const handleSearch = async (e) => {
         e.preventDefault();
-        if (!query.trim() || !apiKey) return;
+        if (!query.trim()) {
+            setMessage('Vui lòng nhập tên người chơi để tìm kiếm.');
+            return;
+        }
+        
+        if (!apiKey) {
+            setMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+            return;
+        }
         
         setIsLoading(true);
         setMessage('');
@@ -26,7 +38,15 @@ const UserSearch = () => {
         
         try {
             const data = await api.searchUsers(apiKey, query.trim());
-            const filteredData = data.filter(foundUser => foundUser.username !== user.username);
+            
+            // ✅ FIX 2: Đảm bảo data là array
+            const safeData = Array.isArray(data) ? data : [];
+            
+            // ✅ FIX 3: Safe filter với optional chaining
+            const filteredData = safeData.filter(foundUser => 
+                foundUser?.username && foundUser.username !== user?.username
+            );
+            
             setResults(filteredData);
 
             if (filteredData.length === 0) {
@@ -34,33 +54,82 @@ const UserSearch = () => {
             }
         } catch (error) {
             console.error("Lỗi khi tìm kiếm:", error);
-            setMessage(`Lỗi kết nối: ${error.message}`);
+            
+            // ✅ FIX 4: Xử lý lỗi token hết hạn
+            if (error.status === 401 || error.status === 403) {
+                setMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                addNotification({
+                    type: 'error',
+                    title: 'Phiên hết hạn',
+                    message: 'Vui lòng đăng nhập lại để tiếp tục.'
+                });
+            } else {
+                setMessage(`Lỗi kết nối: ${error.message || 'Không thể tìm kiếm'}`);
+            }
         } finally {
             setIsLoading(false);
         }
     };
     
-    const handleAddFriend = (username) => {
-        sendFriendRequest(username);
-        setResults(prevResults => prevResults.filter(r => r.username !== username));
+    const handleAddFriend = async (username) => {
+        if (!username) return;
+        
+        try {
+            await sendFriendRequest(username);
+            setResults(prevResults => prevResults.filter(r => r.username !== username));
+            addNotification({
+                type: 'success',
+                title: 'Đã gửi lời mời',
+                message: `Đã gửi lời mời kết bạn đến ${username}`
+            });
+        } catch (error) {
+            console.error("Lỗi gửi lời mời:", error);
+            addNotification({
+                type: 'error',
+                title: 'Lỗi',
+                message: error.message || 'Không thể gửi lời mời kết bạn'
+            });
+        }
     };
 
+    // ✅ FIX 5: Hàm getFriendStatus với safe checks
     const getFriendStatus = (username) => {
-        if (friends.some(f => f.username === username)) {
+        if (!username) {
+            return { text: 'Kết bạn', disabled: false, icon: 'bx-user-plus' };
+        }
+
+        const lowerUsername = username.toLowerCase();
+
+        // Check đã là bạn bè
+        const isFriend = safeFriends.some(f => 
+            f?.username?.toLowerCase() === lowerUsername
+        );
+        if (isFriend) {
             return { text: 'Đã kết bạn', disabled: true, icon: 'bx-check' };
         }
-        if (requests.some(r => r.username === username && r.status === 'pending_sent')) {
+
+        // Check đã gửi lời mời
+        const hasSentRequest = safeRequests.some(r => 
+            r?.username?.toLowerCase() === lowerUsername && r?.status === 'pending_sent'
+        );
+        if (hasSentRequest) {
             return { text: 'Đã gửi', disabled: true, icon: 'bx-time' };
         }
-        if (requests.some(r => r.username === username && r.status === 'pending_received')) {
+
+        // Check đã nhận lời mời
+        const hasReceivedRequest = safeRequests.some(r => 
+            r?.username?.toLowerCase() === lowerUsername && r?.status === 'pending_received'
+        );
+        if (hasReceivedRequest) {
             return { text: 'Chờ phản hồi', disabled: true, icon: 'bx-envelope' };
         }
+
         return { text: 'Kết bạn', disabled: false, icon: 'bx-user-plus' };
     };
 
     return (
         <div className="search-container">
-            <style jsx>{`
+            <style>{`
                 .search-container {
                     width: 100%;
                 }
@@ -99,147 +168,179 @@ const UserSearch = () => {
                     color: rgba(255,255,255,0.4);
                 }
                 .search-btn {
-                    padding: 0 30px;
-                    background: linear-gradient(135deg, #3b82f6, #2563eb);
+                    padding: 16px 32px;
+                    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
                     border: none;
                     border-radius: 12px;
                     color: white;
-                    font-weight: 700;
+                    font-weight: 600;
                     cursor: pointer;
                     transition: all 0.3s ease;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                 }
                 .search-btn:hover:not(:disabled) {
                     transform: translateY(-2px);
-                    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.5);
+                    box-shadow: 0 10px 30px rgba(167, 139, 250, 0.4);
                 }
                 .search-btn:disabled {
-                    opacity: 0.7;
+                    opacity: 0.6;
                     cursor: not-allowed;
-                    filter: grayscale(1);
                 }
-                
-                .result-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
+                .message {
+                    text-align: center;
+                    padding: 20px;
+                    color: rgba(255,255,255,0.6);
+                    font-size: 1rem;
                 }
-                .result-item {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 16px;
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
+                .results-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 20px;
+                }
+                .user-card {
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
                     border-radius: 16px;
-                    transition: all 0.3s ease;
-                    animation: slideIn 0.3s ease-out;
-                }
-                .result-item:hover {
-                    background: rgba(255, 255, 255, 0.08);
-                    border-color: rgba(167, 139, 250, 0.3);
-                    transform: translateX(5px);
-                }
-                .user-info {
+                    padding: 24px;
                     display: flex;
                     align-items: center;
-                    gap: 15px;
+                    gap: 16px;
+                    transition: all 0.3s ease;
                 }
-                .user-avatar-placeholder {
-                    width: 40px;
-                    height: 40px;
+                .user-card:hover {
+                    background: rgba(255,255,255,0.08);
+                    border-color: rgba(167, 139, 250, 0.3);
+                    transform: translateY(-4px);
+                }
+                .user-avatar {
+                    width: 56px;
+                    height: 56px;
                     border-radius: 50%;
                     background: linear-gradient(135deg, #a78bfa, #ec4899);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-weight: bold;
+                    font-size: 1.5rem;
+                    font-weight: 700;
                     color: white;
-                    font-size: 1.2rem;
+                    text-transform: uppercase;
+                    flex-shrink: 0;
+                }
+                .user-info {
+                    flex-grow: 1;
+                    min-width: 0;
                 }
                 .user-name {
-                    color: white;
                     font-weight: 600;
                     font-size: 1.1rem;
+                    color: white;
+                    margin-bottom: 4px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
-                .action-btn {
-                    padding: 8px 16px;
-                    border-radius: 8px;
-                    font-size: 0.9rem;
-                    font-weight: 600;
+                .user-level {
+                    font-size: 0.85rem;
+                    color: rgba(255,255,255,0.5);
+                }
+                .add-btn {
+                    padding: 10px 20px;
+                    border-radius: 10px;
                     border: none;
+                    font-weight: 600;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
                     gap: 6px;
+                    font-size: 0.9rem;
+                    flex-shrink: 0;
                 }
-                .btn-add {
-                    background: rgba(16, 185, 129, 0.2);
-                    color: #34d399;
-                    border: 1px solid rgba(16, 185, 129, 0.4);
+                .add-btn.active {
+                    background: linear-gradient(135deg, #a78bfa, #ec4899);
+                    color: white;
                 }
-                .btn-add:hover {
-                    background: rgba(16, 185, 129, 0.4);
-                    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+                .add-btn.active:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 5px 20px rgba(167, 139, 250, 0.4);
                 }
-                .btn-disabled {
-                    background: rgba(255, 255, 255, 0.1);
-                    color: rgba(255, 255, 255, 0.4);
+                .add-btn.disabled {
+                    background: rgba(255,255,255,0.1);
+                    color: rgba(255,255,255,0.5);
                     cursor: not-allowed;
                 }
-                .message-text {
-                    color: rgba(255, 255, 255, 0.5);
-                    text-align: center;
-                    margin-top: 20px;
-                    font-style: italic;
+                .loading-spinner {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-top-color: white;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
                 }
-                @keyframes slideIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
                 }
             `}</style>
 
-            <h3 className="search-title">Tìm kiếm người chơi</h3>
+            <h2 className="search-title">🔍 Tìm kiếm người chơi</h2>
+            
             <form onSubmit={handleSearch} className="search-form">
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Nhập tên nhân vật..."
+                    placeholder="Nhập tên người chơi..."
                     className="search-input"
+                    disabled={isLoading}
                 />
-                <button type="submit" disabled={isLoading} className="search-btn">
-                    {isLoading ? <i className='bx bx-loader-alt bx-spin'></i> : 'Tìm'}
+                <button 
+                    type="submit" 
+                    className="search-btn"
+                    disabled={isLoading || !query.trim()}
+                >
+                    {isLoading ? (
+                        <div className="loading-spinner"></div>
+                    ) : (
+                        <>
+                            <i className="bx bx-search"></i>
+                            Tìm kiếm
+                        </>
+                    )}
                 </button>
             </form>
 
-            <div className="result-list">
-                {!isLoading && message && <p className="message-text">{message}</p>}
-                
-                {!isLoading && results.map(foundUser => {
-                    const status = getFriendStatus(foundUser.username);
-                    return (
-                        <div key={foundUser.id || foundUser.username} className="result-item">
-                            <div className="user-info">
-                                <div className="user-avatar-placeholder">
-                                    {foundUser.username.charAt(0).toUpperCase()}
+            {message && <p className="message">{message}</p>}
+
+            {results.length > 0 && (
+                <div className="results-grid">
+                    {results.map((foundUser) => {
+                        const status = getFriendStatus(foundUser.username);
+                        return (
+                            <div key={foundUser._id || foundUser.username} className="user-card">
+                                <div className="user-avatar">
+                                    {foundUser.username?.charAt(0) || '?'}
                                 </div>
-                                <span className="user-name">{foundUser.username}</span>
+                                <div className="user-info">
+                                    <div className="user-name">{foundUser.username}</div>
+                                    <div className="user-level">
+                                        Level {foundUser.level || 1}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleAddFriend(foundUser.username)}
+                                    disabled={status.disabled}
+                                    className={`add-btn ${status.disabled ? 'disabled' : 'active'}`}
+                                >
+                                    <i className={`bx ${status.icon}`}></i>
+                                    {status.text}
+                                </button>
                             </div>
-                            <button 
-                                onClick={() => handleAddFriend(foundUser.username)}
-                                disabled={status.disabled}
-                                className={`action-btn ${status.disabled ? 'btn-disabled' : 'btn-add'}`}
-                            >
-                                <i className={`bx ${status.icon}`}></i>
-                                {status.text}
-                            </button>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };
