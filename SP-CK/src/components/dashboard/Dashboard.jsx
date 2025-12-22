@@ -1,4 +1,4 @@
-// src/components/dashboard/Dashboard.jsx
+// src/components/dashboard/Dashboard.jsx - SỬA HOÀN CHỈNH
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,12 +8,10 @@ import Header from '../header';
 import Hero from '../hero';
 import GameLibrary from '../Game/GameLibrary';
 import History from '../history/History';
-import Friends from '../FriendsPage/FriendsPage';
+import Friends from '../FriendsPage/FriendsPage';  // ✅ Import FriendsPage
 import LoadingSpinner from '../common/LoadingSpinner';
 import Shop from '../Shop/Shop';
-import FriendsDrawer from '../FriendsPage/FriendsDrawer'; // ✅ Import Drawer Mới
-
-
+import FriendsDrawer from '../FriendsPage/FriendsDrawer';
 
 const Dashboard = () => {
     const { user, logout, isLoading } = useAuth();
@@ -22,27 +20,27 @@ const Dashboard = () => {
     const [currentView, setCurrentView] = useState('home');
     const [isTransitioning, setIsTransitioning] = useState(false);
     
-    // ✅ State điều khiển Friends Drawer
-    const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+    // ✅ State cho Drawer (dùng cho nút riêng, không phải nav chính)
+    const [isFriendsDrawerOpen, setIsFriendsDrawerOpen] = useState(false);
 
     useEffect(() => {
         if (user) {
             addNotification({
                 type: 'success',
                 title: 'Chào mừng trở lại!',
-                message: `Xin chào ${user.username}!`,
-                duration: 5000
+                message: `Xin chào ${user.username}!`
             });
         }
-    }, [user, addNotification]);
+    }, [user]);
 
+    if (isLoading) {
+        return <LoadingSpinner />;
+    }
+
+    // ✅ SỬA: Hàm navigate - luôn chuyển view
     const handleNavigate = (view) => {
-        const gameKeys = ['sudoku', 'caro', 'battleship', 'chess', 'pacman', 'puzzle', 'photobooth', 'snake'];
-        if (gameKeys.includes(view)) {
-            navigate('/app', { state: { initialView: view }, replace: false });
-            return;
-        }
         if (view === currentView) return;
+        
         setIsTransitioning(true);
         setTimeout(() => {
             setCurrentView(view);
@@ -50,79 +48,59 @@ const Dashboard = () => {
         }, 300);
     };
 
-    const handleLogout = async () => {
-        try {
-            await logout();
-        } catch (error) {
-            console.error(error);
-        }
+    // ✅ Hàm toggle drawer riêng (có thể dùng cho nút khác)
+    const toggleFriendsDrawer = () => {
+        setIsFriendsDrawerOpen(prev => !prev);
     };
 
+    // ✅ SỬA: Render content dựa trên currentView
     const renderContent = () => {
-        if (isTransitioning) return <LoadingSpinner size="medium" message="Đang chuyển trang..." />;
         switch (currentView) {
-            
-    
             case 'home':
-                return <Hero onNavigate={handleNavigate} />;
-            
+                return <Hero user={user} />;
             case 'games':
-                // ✅ SỬA: Dùng GameLibrary và truyền onPlay prop
-                return <GameLibrary onPlay={handleNavigate} />;
-            
-            case 'history':
-                return <History />;
-            
+                return <GameLibrary />;
             case 'friends':
-                return <Friends />;
-            
+                return <Friends />;  // ✅ RENDER FRIENDSPAGE
             case 'shop':
                 return <Shop />;
-
+            case 'history':
+                return <History />;
             default:
-                return <Hero onNavigate={handleNavigate} />;
+                return <Hero user={user} />;
         }
     };
 
-    if (isLoading) return <LoadingSpinner message="Đang tải dashboard..." />;
-
     return (
-        <div className="relative h-screen w-screen overflow-hidden bg-[#0f0c29]">
+        <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
+            <Header 
+                onNavigate={handleNavigate}  // ✅ Chỉ truyền navigate
+                currentView={currentView}
+                user={user}
+                onLogout={logout}
+                // ❌ BỎ: onToggleFriends - không cần nữa cho nav chính
+            />
             
-            {/* Header: Truyền prop onToggleFriends */}
-            <div className="fixed top-0 left-0 right-0 z-[60] h-[80px]">
-                <Header 
-                    onNavigate={handleNavigate}
-                    currentView={currentView}
-                    user={user}
-                    onLogout={handleLogout}
-                    onToggleFriends={() => setIsFriendsOpen(true)} // ✅ Trigger mở Drawer
-                />
-            </div>
-            
-            {/* Main Body: Full Width (Không còn chia cột nữa) */}
-            <div className="w-full h-full pt-[80px] relative z-10">
-                <main className="w-full h-full overflow-hidden relative">
-                    <div className="h-full overflow-y-auto overflow-x-hidden custom-scrollbar scroll-smooth">
-                        <div className={`min-h-full transition-all duration-500 ease-out ${isTransitioning ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'}`}>
-                            {renderContent()}
-                        </div>
-                    </div>
-                </main>
-            </div>
+            <main className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+                {renderContent()}
+            </main>
 
-            {/* ✅ Friends Drawer Overlay (Nằm đè lên tất cả) */}
+            {/* ✅ Drawer vẫn có thể mở từ nơi khác (ví dụ: nút floating) */}
             <FriendsDrawer 
-                isOpen={isFriendsOpen} 
-                onClose={() => setIsFriendsOpen(false)} 
+                isOpen={isFriendsDrawerOpen} 
+                onClose={() => setIsFriendsDrawerOpen(false)} 
             />
 
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.3); border-radius: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(167, 139, 250, 0.5); }
-            `}</style>
+            {/* ✅ OPTIONAL: Nút floating để mở drawer nhanh */}
+            <button
+                onClick={toggleFriendsDrawer}
+                className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 
+                           rounded-full shadow-lg hover:scale-110 transition-transform z-50
+                           flex items-center justify-center"
+                title="Mở danh sách bạn bè"
+            >
+                <i className="bx bxs-group text-white text-2xl"></i>
+            </button>
         </div>
     );
 };

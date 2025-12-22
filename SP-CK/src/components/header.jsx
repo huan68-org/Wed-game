@@ -54,15 +54,10 @@ const Header = ({ onNavigate, currentView, user, onLogout, onToggleFriends }) =>
 
     // ✅ FIX 2: Hàm xử lý click thông minh
     const handleNavClick = (id) => {
-        // Nếu click vào 'friends' VÀ có hàm toggle (mở drawer) thì dùng toggle
-        if (id === 'friends' && onToggleFriends) {
-            onToggleFriends();
-        } else {
-            // Các mục khác thì chuyển trang bình thường
-            onNavigate(id);
-        }
+        onNavigate(id);  // Luôn gọi navigate
         setIsMobileMenuOpen(false);
     };
+
 
     const getNotificationIcon = (type) => {
         switch (type) {
