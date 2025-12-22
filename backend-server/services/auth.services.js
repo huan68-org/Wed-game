@@ -364,25 +364,40 @@ exports.logoutUser = async (userId, token) => {
     return { message: 'Đăng xuất thành công.' };
 };
 
+
+// ✅ THÊM: Hàm refresh access token
 exports.refreshAccessToken = async (refreshToken) => {
-    if (!refreshToken) throw { status: 401, message: 'Refresh Token bị thiếu' };
+    if (!refreshToken) {
+        throw { status: 401, message: 'Refresh Token bị thiếu' };
+    }
 
-    let decoded;
     try {
-        decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-    } catch (err) {
-        throw { status: 403, message: 'Refresh Token không hợp lệ hoặc đã hết hạn' };
+        const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+        
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            throw { status: 401, message: 'Người dùng không tồn tại' };
+        }
+
+        // Kiểm tra refresh token có trong danh sách không
+        if (!user.refreshToken.includes(refreshToken)) {
+            throw { status: 401, message: 'Refresh Token không hợp lệ' };
+        }
+
+        // Tạo access token mới
+        const payload = { id: user._id, username: user.username };
+        const newAccessToken = jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: ACCESS_TOKEN_LIFE });
+
+        return { accessToken: newAccessToken };
+
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            throw { status: 401, message: 'Refresh Token đã hết hạn. Vui lòng đăng nhập lại.' };
+        } else if (error.name === 'JsonWebTokenError') {
+            throw { status: 401, message: 'Refresh Token không hợp lệ' };
+        }
+        throw error;
     }
-
-    const user = await User.findById(decoded.id);
-    if (!user) throw { status: 403, message: 'Người dùng không tồn tại' };
-
-    if (!user.refreshToken.includes(refreshToken)) {
-        throw { status: 403, message: 'Refresh Token không hợp lệ' };
-    }
-
-    const { accessToken } = generateTokens(user);
-    return { accessToken };
 };
 
 exports.getCurrentUser = async (userId) => {
@@ -390,3 +405,4 @@ exports.getCurrentUser = async (userId) => {
     if (!user) throw { status: 404, message: 'Người dùng không tồn tại' };
     return user;
 };
+

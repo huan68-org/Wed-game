@@ -5,18 +5,17 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 export const BASE_URL = API_URL.replace('/api', '');
 
 async function handleResponse(response) {
+    // ✅ SỬA: Parse response trước khi check ok
+    const data = await response.json().catch(() => null);
+    
     if (!response.ok) {
-        // Cố gắng đọc JSON, nếu thất bại thì trả về thông báo lỗi chung
-        const error = await response.json().catch(() => ({ 
-            message: `Lỗi Server: ${response.status} ${response.statusText}` 
-        }));
-        
-        // Tạo Error object tùy chỉnh với status code để xử lý ở AuthContext
-        const err = new Error(error.message || 'Đã có lỗi xảy ra');
-        err.status = response.status; 
+        const err = new Error(data?.message || `Lỗi Server: ${response.status} ${response.statusText}`);
+        err.status = response.status;
+        err.data = data;
         throw err;
     }
-    return response.json();
+    
+    return data;
 }
 
 // ============================================
@@ -27,13 +26,13 @@ export const validateToken = async (accessToken) => {
     const response = await fetch(`${API_URL}/auth/me`, {
         method: 'GET',
         headers: { 
-            // Sử dụng Access Token để xác thực
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
         }
     });
     return handleResponse(response);
 };
+
 
 export const validateApiKey = async (apiKey) => {
     const response = await fetch(`${API_URL}/auth/me`, {
@@ -60,6 +59,7 @@ export const login = async (username, password) => {
     return handleResponse(response);
 };
 
+
 export const resendVerificationEmail = async (email) => {
     const response = await fetch(`${API_URL}/auth/resend-verification`, {
         method: 'POST',
@@ -69,6 +69,7 @@ export const resendVerificationEmail = async (email) => {
     return handleResponse(response);
 };
 
+// ✅ HÀM FORGOT PASSWORD
 export const forgotPassword = async (email) => {
     const response = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',
@@ -83,7 +84,7 @@ export const checkResetToken = async (token) => {
         method: 'GET',
     });
     return handleResponse(response);
-};
+};  
 
 export const resetPassword = async (token, newPassword) => {
     const response = await fetch(`${API_URL}/auth/reset-password/${token}`, {

@@ -1,4 +1,4 @@
-// src/context/AuthContext.jsx - Đã sửa lỗi an toàn khi kiểm tra error
+// src/context/AuthContext.jsx - PHIÊN BẢN ĐÃ SỬA HOÀN CHỈNH
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import * as api from '../services/api';
@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
         if (!key) return;
         try {
             const historyData = await api.getHistory(key);
-            // Đảm bảo historyData là array, nếu không thì dùng array rỗng
             setHistory(Array.isArray(historyData) ? historyData : []);
         } catch (error) {
             console.error("Không thể tải lịch sử:", error);
@@ -81,8 +80,8 @@ export const AuthProvider = ({ children }) => {
 
                 setUser(userData);
                 setAccessToken(tokenFromStorage);
-                setApiKey(keyFromStorage); // Giữ API Key nếu có
-                setRefreshToken(refreshTokenFromStorage); // Giữ Refresh Token nếu có
+                setApiKey(keyFromStorage);
+                setRefreshToken(refreshTokenFromStorage);
 
                 if (keyFromStorage) {
                     await fetchHistory(keyFromStorage);
@@ -92,23 +91,19 @@ export const AuthProvider = ({ children }) => {
             } catch (error) {
                 console.error('❌ [AuthContext] Xác thực thất bại:', error);
 
-                // FIX: Kiểm tra error.message tồn tại và là string
                 const errorMessage = error && typeof error.message === 'string' ? error.message : '';
                 const errorStatus = error && typeof error.status === 'number' ? error.status : 0;
 
-                // Kiểm tra nếu token hết hạn (403/401 hoặc message chứa "expired"/"hết hạn")
-                // Đã thêm 401 vì đây là status code phổ biến cho Unauthenticated
                 if (errorStatus === 403 || errorStatus === 401 || 
                     errorMessage.toLowerCase().includes('hết hạn') || 
                     errorMessage.toLowerCase().includes('expired') ||
-                    errorMessage.toLowerCase().includes('invalid token')) { // Thêm invalid token
+                    errorMessage.toLowerCase().includes('invalid token')) {
                     
                     console.log('🔄 [AuthContext] Token hết hạn/không hợp lệ, đang thử làm mới...');
                     const refreshSuccess = await handleTokenRefresh();
                     
                     if (refreshSuccess) {
                         console.log('✅ [AuthContext] Làm mới token thành công');
-                        // Gọi lại hàm để xác thực Access Token mới
                         return validateSessionOnLoad(); 
                     }
                 }
@@ -123,6 +118,29 @@ export const AuthProvider = ({ children }) => {
         validateSessionOnLoad();
     }, []);
 
+    // ✅ HÀM REGISTER - ĐÂY LÀ HÀM BỊ THIẾU!
+    const register = async (username, email, password) => {
+        try {
+            console.log('📝 [AuthContext] Đang đăng ký...');
+            const result = await api.register(username, email, password);
+            
+            console.log('✅ [AuthContext] Đăng ký thành công:', result);
+            
+            // Trả về kết quả với format chuẩn
+            return { 
+                success: true, 
+                message: result.message || 'Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.',
+                data: result
+            };
+        } catch (error) {
+            console.error('❌ [AuthContext] Lỗi đăng ký:', error);
+            return { 
+                success: false, 
+                message: error.message || 'Đã xảy ra lỗi khi đăng ký.' 
+            };
+        }
+    };
+
     const login = async (username, password) => {
         try {
             console.log('🔐 [AuthContext] Đang đăng nhập...');
@@ -130,7 +148,13 @@ export const AuthProvider = ({ children }) => {
             
             console.log('✅ [AuthContext] Đăng nhập thành công:', result);
 
-            setUser(result.user);
+            // ✅ SỬA: Xử lý response từ backend đúng cách
+            const userData = {
+                username: result.username,
+                email: result.email
+            };
+
+            setUser(userData);
             setApiKey(result.apiKey);
             setAccessToken(result.accessToken);
             setRefreshToken(result.refreshToken);
@@ -142,19 +166,65 @@ export const AuthProvider = ({ children }) => {
             await fetchHistory(result.apiKey);
             websocketService.connect(result.apiKey);
             
-            return result;
+            return { 
+                success: true, 
+                user: userData,
+                apiKey: result.apiKey,
+                accessToken: result.accessToken,
+                refreshToken: result.refreshToken
+            };
         } catch (error) {
             console.error('❌ [AuthContext] Lỗi đăng nhập:', error);
-            throw error;
+            return { 
+                success: false, 
+                message: error.message || 'Đã xảy ra lỗi khi đăng nhập.' 
+            };
+        }
+    };
+
+    // ✅ HÀM RESEND VERIFICATION EMAIL
+    const resendVerificationEmail = async (email) => {
+        try {
+            console.log('📧 [AuthContext] Đang gửi lại email xác minh...');
+            const result = await api.resendVerificationEmail(email);
+            
+            console.log('✅ [AuthContext] Gửi email thành công:', result);
+            return { 
+                success: true, 
+                message: result.message || 'Email xác minh đã được gửi lại.' 
+            };
+        } catch (error) {
+            console.error('❌ [AuthContext] Lỗi gửi email:', error);
+            return { 
+                success: false, 
+                message: error.message || 'Không thể gửi email xác minh.' 
+            };
+        }
+    };
+
+    // ✅ HÀM FORGOT PASSWORD
+    const forgotPassword = async (email) => {
+        try {
+            console.log('🔑 [AuthContext] Đang gửi yêu cầu reset password...');
+            const result = await api.forgotPassword(email);
+            
+            console.log('✅ [AuthContext] Gửi yêu cầu thành công:', result);
+            return { 
+                success: true, 
+                message: result.message || 'Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu.' 
+            };
+        } catch (error) {
+            console.error('❌ [AuthContext] Lỗi forgot password:', error);
+            return { 
+                success: false, 
+                message: error.message || 'Không thể gửi yêu cầu đặt lại mật khẩu.' 
+            };
         }
     };
 
     const logout = async () => {
         try {
             if (accessToken && refreshToken) {
-                // Lỗi 403 ở đây có thể là do accessToken đã hết hạn,
-                // nhưng ta vẫn cố gắng gọi logout để server có cơ hội xóa refresh token
-                // Nếu thất bại, ta vẫn clear client side data.
                 await api.logout(accessToken, refreshToken); 
             }
         } catch (error) {
@@ -163,23 +233,27 @@ export const AuthProvider = ({ children }) => {
             clearAuthData();
         }
     };
-    
-    // Thêm hàm fetchHistory vào context value để component khác có thể gọi
-    const fetchHistoryWrapper = () => fetchHistory(apiKey);
+
+    // ✅ QUAN TRỌNG: Export tất cả các hàm cần thiết
+    const value = {
+        user,
+        apiKey,
+        accessToken,
+        refreshToken,
+        isLoading,
+        history,
+        login,
+        logout,
+        register,                    // ✅ THÊM HÀM NÀY
+        resendVerificationEmail,     // ✅ THÊM HÀM NÀY
+        forgotPassword,              // ✅ THÊM HÀM NÀY
+        fetchHistory,
+        setHistory,
+        clearAuthData
+    };
 
     return (
-        <AuthContext.Provider value={{
-            user,
-            apiKey,
-            accessToken,
-            refreshToken,
-            isLoading,
-            isAuthenticated: !!user,
-            history,
-            login,
-            logout,
-            fetchHistory: fetchHistoryWrapper // Dùng wrapper để không cần truyền apiKey
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
@@ -192,3 +266,5 @@ export const useAuth = () => {
     }
     return context;
 };
+
+export default AuthContext;
