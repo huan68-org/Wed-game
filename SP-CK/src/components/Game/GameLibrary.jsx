@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import GameCard from './GameCard';
-import { gameList } from '../../GameList';  // ✅ SỬA PATH
+import { gameList } from '../../GameList';
 import 'boxicons/css/boxicons.min.css';
+import { useNavigate } from 'react-router-dom';
 
-const GameLibrary = ({ onPlay }) => {
+const GameLibrary = () => {
+    const navigate = useNavigate();
     const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -21,6 +23,27 @@ const GameLibrary = ({ onPlay }) => {
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
+
+    // ✅ SỬA HÀM handlePlay - CHỈ TRUYỀN DATA THUẦN
+    const handlePlay = (game) => {
+        if (!game?.key) {
+            console.error('❌ Game key is missing');
+            return;
+        }
+        
+        console.log('🎮 Starting game:', game.key);
+        
+        // ✅ CHỈ TRUYỀN CÁC THUỘC TÍNH PRIMITIVE (string, number, boolean)
+        navigate(`/game/${game.key}`, { 
+            state: { 
+                gameKey: game.key,
+                gameName: game.name,
+                gameDescription: game.description,
+                gameIcon: game.icon,
+                gameCategory: game.category
+            } 
+        });
+    };
 
     // Filter games
     const filteredGames = gameList.filter(game => {
@@ -411,7 +434,11 @@ const GameLibrary = ({ onPlay }) => {
                 ) : (
                     <div className="game-library-grid">
                         {filteredGames.map(game => (
-                            <GameCard key={game.key} game={game} onPlay={onPlay} />
+                            <GameCard 
+                                key={game.key} 
+                                game={game} 
+                                onPlay={handlePlay}
+                            />
                         ))}
                     </div>
                 )}

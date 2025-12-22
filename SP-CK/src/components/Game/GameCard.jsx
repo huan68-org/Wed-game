@@ -4,6 +4,17 @@ import 'boxicons/css/boxicons.min.css';
 const GameCard = ({ game, onPlay }) => {
     const [isHovered, setIsHovered] = useState(false);
 
+    const handlePlayClick = (e) => {
+        e.stopPropagation();
+        console.log('🎮 GameCard clicked:', game);
+        
+        if (typeof onPlay === 'function') {
+            onPlay(game);
+        } else {
+            console.error('❌ onPlay is not a function');
+        }
+    };
+
     return (
         <div className="game-card-cosmic-wrapper">
             <style>{`
@@ -402,7 +413,6 @@ const GameCard = ({ game, onPlay }) => {
                 className="game-card-container"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                onClick={() => onPlay(game.key)}
             >
                 {/* Glow Effect */}
                 <div className="game-card-glow"></div>
@@ -462,7 +472,10 @@ const GameCard = ({ game, onPlay }) => {
                     </p>
 
                     {/* Play Button */}
-                    <button className="game-card-play-button">
+                    <button 
+                        className="game-card-play-button"
+                        onClick={handlePlayClick}
+                    >
                         <i className="bx bx-play-circle"></i>
                         <span>Chơi ngay</span>
                     </button>

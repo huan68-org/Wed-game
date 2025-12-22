@@ -12,6 +12,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import VerificationStatus from './components/auth/VerificationStatus';
 import ResetPassword from './components/auth/ResetPassword';
 import MainApp from './MainApp';
+import GamePage from './pages/GamePage';
 import { useAuth } from './context/AuthContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
@@ -60,12 +61,22 @@ const AppRoutes = () => {
                 } 
             />
 
-            {/* Main App - Game Hub */}
+            {/* Main App - Game Library */}
             <Route 
                 path="/app" 
                 element={
                     <ProtectedRoute>
                         <MainApp />
+                    </ProtectedRoute>
+                } 
+            />
+
+            {/* Game Page */}
+            <Route 
+                path="/game/:gameKey" 
+                element={
+                    <ProtectedRoute>
+                        <GamePage />
                     </ProtectedRoute>
                 } 
             />
